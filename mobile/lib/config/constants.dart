@@ -1,0 +1,75 @@
+import '../models/models.dart';
+
+const String appName = 'QuejasVecinales';
+const String appTagline = 'Tu barrio, tu voz';
+const double maxDistanceM = 10000;
+const int maxPhotos = 4;
+const int maxPhotoBytes = 800 * 1024;
+
+/// Madrid centro — fallback demo si no hay geolocalización.
+const GeoPosition demoCenter = GeoPosition(lat: 40.4168, lng: -3.7038);
+
+const Map<ComplaintCategory, CategoryMeta> categories = {
+  ComplaintCategory.bachesCarreteras: CategoryMeta(
+    label: 'Baches y carreteras',
+    color: 0xFFC2410C,
+  ),
+  ComplaintCategory.mobiliarioUrbano: CategoryMeta(
+    label: 'Mobiliario urbano',
+    color: 0xFF0369A1,
+  ),
+  ComplaintCategory.parquesJardines: CategoryMeta(
+    label: 'Parques y jardines',
+    color: 0xFF15803D,
+  ),
+  ComplaintCategory.limpieza: CategoryMeta(
+    label: 'Limpieza',
+    color: 0xFFA16207,
+  ),
+  ComplaintCategory.iluminacion: CategoryMeta(
+    label: 'Iluminación',
+    color: 0xFFCA8A04,
+  ),
+  ComplaintCategory.senales: CategoryMeta(
+    label: 'Señales',
+    color: 0xFFB91C1C,
+  ),
+  ComplaintCategory.otros: CategoryMeta(
+    label: 'Otros',
+    color: 0xFF475569,
+  ),
+};
+
+const Map<AdminLevel, String> adminLevels = {
+  AdminLevel.ayuntamiento: 'Ayuntamiento',
+  AdminLevel.provincia: 'Provincia (Diputación)',
+  AdminLevel.comunidad: 'Comunidad Autónoma',
+  AdminLevel.estado: 'Estado (Gobierno de España)',
+};
+
+const Map<ComplaintStatus, String> statusLabels = {
+  ComplaintStatus.pending: 'Pendiente de moderación',
+  ComplaintStatus.approved: 'Aprobada',
+  ComplaintStatus.rejected: 'Rechazada',
+  ComplaintStatus.resolved: 'Resuelta',
+};
+
+const List<({ReputationLevel level, int min})> reputationThresholds = [
+  (level: ReputationLevel.novato, min: 0),
+  (level: ReputationLevel.vecinoActivo, min: 50),
+  (level: ReputationLevel.vigilante, min: 150),
+  (level: ReputationLevel.referente, min: 300),
+  (level: ReputationLevel.expertoVecinal, min: 500),
+];
+
+const pointsComplaintApproved = 15;
+const pointsVoteReal = 2;
+const pointsVoteFake = 1;
+const pointsComment = 3;
+const pointsResolvedBonus = 10;
+
+class CategoryMeta {
+  const CategoryMeta({required this.label, required this.color});
+  final String label;
+  final int color;
+}

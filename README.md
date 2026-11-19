@@ -1,20 +1,45 @@
 # QuejasVecinales
 
-Plataforma **PWA móvil + web** para reportar problemas del barrio (baches, farolas, basura…).  
+Plataforma **web + app nativa** para reportar problemas del barrio (baches, farolas, basura…).  
 UI 100 % en español. Marca: **QuejasVecinales**.
 
-**Una sola fuente de verdad:** Supabase (Auth + Postgres/PostGIS). Lo que haces en el móvil aparece en la web (y al revés) vía API + Realtime / sync.
+**Una sola fuente de verdad:** Supabase (Auth + Postgres/PostGIS). Lo que haces en el móvil nativo aparece en la web (y al revés).
+
+## Clientes
+
+| Cliente | Ruta | Notas |
+|---------|------|--------|
+| **Web / PWA** | raíz (Next.js) | APIs + shell adaptativo |
+| **Móvil nativo** | [`mobile/`](mobile/) | Flutter iOS + Android — **no** es WebView/PWA |
 
 ## Experiencia dual (móvil ↔ web)
 
-| | Móvil (PWA) | Web / escritorio |
+| | Móvil nativo (Flutter) | Web / escritorio |
 |---|---|---|
 | Navegación | Bottom nav + FAB «Subir Queja» | Sidebar + CTA |
-| Orientación | Portrait y landscape adaptados | Layout ancho (mapa + lista) |
-| Datos | Mismo backend Supabase / API | Idem |
-| Offline ligero | Service worker (`/sw.js`) | Mismo origen |
+| Orientación | Portrait y landscape | Layout ancho (mapa + lista) |
+| Datos | Mismo backend Supabase | Idem |
+| Offline ligero | — | Service worker (`/sw.js`) |
 
-Manifest con `"orientation": "any"`. No es un layout móvil estirado: ≥1024 px usa shell de escritorio.
+## Arranque — web
+
+```bash
+cp .env.example .env.local
+npm install
+npm run dev
+```
+
+Abre [http://localhost:3000](http://localhost:3000). Sin secretos → **modo demo**. Admin: `/admin` con secreto `demo-admin`.
+
+## Arranque — Flutter
+
+```bash
+cd mobile
+flutter pub get
+flutter run
+```
+
+Sin `SUPABASE_URL` / `SUPABASE_ANON_KEY` → **modo demo**. Para producción: copia `.env.example` → `assets/env/.env`. Guía: [`mobile/README.md`](mobile/README.md).
 
 ## Reglas de negocio
 
@@ -27,40 +52,18 @@ Manifest con `"orientation": "any"`. No es un layout móvil estirado: ≥1024 
 
 ## Stack
 
-- Next.js 15 (App Router) + TypeScript + Tailwind CSS 4 + shadcn-style UI + Framer Motion  
+- **Web:** Next.js 15 + TypeScript + Tailwind + Framer Motion  
+- **Móvil:** Flutter (iOS + Android)  
 - Supabase (Auth, Postgres + PostGIS, Realtime opcional)  
-- Cloudinary + `browser-image-compression`  
-- Leaflet + GeoJSON CCAA/provincias/municipios (muestras en `/public/geojson`)  
-- Web Push (VAPID; stub si faltan claves)  
-- Tipografía: **Fraunces** (display) + **Manrope** (cuerpo)
-
-## Arranque local
-
-```bash
-cp .env.example .env.local
-npm install
-npm run dev
-```
-
-Abre [http://localhost:3000](http://localhost:3000).
-
-**Sin secretos:** la app corre en **modo demo** (datos en memoria + seed). Verás un banner ámbar. Ideal para probar UI, mapa, votos ≤10 km y admin.
-
-```bash
-npm run build   # debe pasar
-npm start
-```
-
-### Admin demo
-
-1. Ve a `/admin`
-2. Secreto: `demo-admin` (o `ADMIN_SECRET` del `.env`)
+- Cloudinary + compresión de fotos  
+- Mapas OSM (Leaflet web / flutter_map móvil)  
+- Tipografía: **Fraunces** + **Manrope**
 
 ## Supabase + PostGIS
 
 1. Crea un proyecto Supabase.
-2. SQL Editor → ejecuta `supabase/migrations/001_init.sql` (extensiones PostGIS, tablas, RLS, triggers).
-3. Rellena en `.env.local`:
+2. SQL Editor → ejecuta `supabase/migrations/001_init.sql`.
+3. Web (`.env.local`):
 
 ```env
 NEXT_PUBLIC_SUPABASE_URL=...
@@ -68,42 +71,20 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=...
 SUPABASE_SERVICE_ROLE_KEY=...
 ```
 
-4. (Opcional) Auth: Anonymous + Email + Google en el dashboard.
-5. Realtime: habilita publicación en `complaints`, `votes`, `comments` para sync en vivo móvil↔web.
-
-## Cloudinary
+4. Flutter (`mobile/.env`):
 
 ```env
-CLOUDINARY_CLOUD_NAME=...
-CLOUDINARY_API_KEY=...
-CLOUDINARY_API_SECRET=...
-# o CLOUDINARY_UPLOAD_PRESET=...
+SUPABASE_URL=...
+SUPABASE_ANON_KEY=...
 ```
 
-Sin Cloudinary, las fotos se guardan como data URL / placeholder (aviso en UI).
+5. Auth: Anonymous + Email + Google (opcional). Realtime en `complaints`, `votes`, `comments`.
 
-## Web Push
+## Cloudinary / Web Push
 
-Genera claves VAPID y configura:
+Ver `.env.example`. Sin claves → stubs / placeholders con aviso en UI.
 
-```env
-NEXT_PUBLIC_VAPID_PUBLIC_KEY=...
-VAPID_PRIVATE_KEY=...
-```
-
-Sin ellas, `/api/push` responde en stub y el perfil lo indica claramente.
-
-## Capas admin del mapa
-
-Muestras simplificadas (no oficiales) en:
-
-- `/public/geojson/ccaa-sample.geojson`
-- `/public/geojson/provincias-sample.geojson`
-- `/public/geojson/municipios-sample.geojson`
-
-Sustituye por GeoJSON oficiales (IGN / datos abiertos) manteniendo `properties.name`.
-
-## Scripts
+## Scripts (web)
 
 | Comando | Descripción |
 |---------|-------------|
@@ -112,18 +93,16 @@ Sustituye por GeoJSON oficiales (IGN / datos abiertos) manteniendo `properties.n
 | `npm start` | Servir build |
 | `npm run lint` | ESLint |
 
-## Estructura relevante
+## Estructura
 
 ```
-src/app/           # Rutas App Router + API
-src/components/    # UI, mapa, quejas, admin, shell adaptativo
-src/lib/           # geo, reputation, demo-store, supabase, cloudinary
+src/               # Next.js App Router + API
+mobile/            # Cliente Flutter nativo
 supabase/migrations/
 public/sw.js       # PWA + push
-public/manifest.webmanifest
 ```
 
 ## Deploy (Vercel)
 
 Conecta el repo, define las env vars del `.env.example` y despliega.  
-La PWA y la web comparten el mismo dominio y el mismo Supabase.
+Web y Flutter comparten el mismo Supabase.
