@@ -22,6 +22,9 @@
 
 # misc
 .DS_Store
+.idea/
+.vscode/
+*.iml
 *.pem
 
 # debug
@@ -33,6 +36,7 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env*
 !.env.example
+!mobile/.env.example
 
 # vercel
 .vercel
@@ -40,3 +44,13 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Flutter / Dart
+**/doc/api/
+**/ios/Pods/
+**/ios/.symlinks/
+**/android/.gradle/
+**/android/local.properties
+**/.dart_tool/
+**/build/
+**/coverage/

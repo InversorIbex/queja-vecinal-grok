@@ -1,0 +1,42 @@
+name: quejas_vecinales
+description: Cliente nativo Flutter (iOS + Android) de QuejasVecinales. Misma backend Supabase que la web.
+publish_to: "none"
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.5.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+  supabase_flutter: ^2.8.0
+  flutter_dotenv: ^5.2.1
+  provider: ^6.1.2
+  geolocator: ^13.0.2
+  flutter_map: ^7.0.2
+  latlong2: ^0.9.1
+  image_picker: ^1.1.2
+  flutter_image_compress: ^2.3.0
+  path_provider: ^2.1.4
+  shared_preferences: ^2.3.3
+  google_fonts: ^6.2.1
+  uuid: ^4.5.1
+  intl: ^0.19.0
+  share_plus: ^10.1.2
+  app_links: ^6.3.2
+  url_launcher: ^6.3.1
+  cached_network_image: ^3.4.1
+  collection: ^1.18.0
+  http: ^1.2.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/env/
+    - assets/demo/
