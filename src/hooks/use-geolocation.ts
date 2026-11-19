@@ -2,14 +2,17 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { getCurrentPosition } from "@/lib/geo";
-import { DEMO_CENTER } from "@/lib/constants";
 import type { GeoPosition } from "@/types";
 
+/**
+ * Device GPS only. Never invents a town (Madrid/Foz/etc.) on deny/error —
+ * position stays null so the 10 km circle is not drawn at a false center.
+ * Session cache is only used when it was a prior successful GPS fix.
+ */
 export function useGeolocation(auto = true) {
   const [position, setPosition] = useState<GeoPosition | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(auto);
-  const [usingDemo, setUsingDemo] = useState(false);
 
   const refresh = useCallback(async () => {
     setLoading(true);
@@ -17,7 +20,6 @@ export function useGeolocation(auto = true) {
     try {
       const pos = await getCurrentPosition();
       setPosition(pos);
-      setUsingDemo(false);
       if (typeof window !== "undefined") {
         sessionStorage.setItem("qv_pos", JSON.stringify(pos));
       }
@@ -29,11 +31,13 @@ export function useGeolocation(auto = true) {
           ? sessionStorage.getItem("qv_pos")
           : null;
       if (cached) {
-        setPosition(JSON.parse(cached) as GeoPosition);
-        setUsingDemo(false);
+        try {
+          setPosition(JSON.parse(cached) as GeoPosition);
+        } catch {
+          setPosition(null);
+        }
       } else {
-        setPosition(DEMO_CENTER);
-        setUsingDemo(true);
+        setPosition(null);
       }
     } finally {
       setLoading(false);
@@ -44,5 +48,5 @@ export function useGeolocation(auto = true) {
     if (auto) void refresh();
   }, [auto, refresh]);
 
-  return { position, error, loading, usingDemo, refresh };
+  return { position, error, loading, refresh };
 }

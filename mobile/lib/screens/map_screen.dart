@@ -13,11 +13,15 @@ class MapScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final state = context.watch<AppState>();
-    final center = state.userPosition ?? demoCenter;
-    final landscape = MediaQuery.orientationOf(context) == Orientation.landscape;
+    final gps = state.userPosition;
+    // Viewport neutro si no hay GPS; el círculo 10 km solo con posición real.
+    final center = gps ?? mapDefaultCenter;
+    final landscape =
+        MediaQuery.orientationOf(context) == Orientation.landscape;
 
     final map = GeofenceMap(
       center: center,
+      showGeofence: gps != null,
       height: landscape
           ? MediaQuery.sizeOf(context).height - 120
           : MediaQuery.sizeOf(context).height * 0.55,
@@ -76,18 +80,28 @@ class MapScreen extends StatelessWidget {
       body: landscape
           ? Row(
               children: [
-                Expanded(flex: 3, child: Padding(padding: const EdgeInsets.all(12), child: map)),
+                Expanded(
+                  flex: 3,
+                  child: Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: map,
+                  ),
+                ),
                 Expanded(flex: 2, child: list),
               ],
             )
           : Column(
               children: [
                 Padding(padding: const EdgeInsets.all(12), child: map),
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: Align(
                     alignment: Alignment.centerLeft,
-                    child: Text('Círculo azul = radio de 10 km desde tu ubicación'),
+                    child: Text(
+                      gps == null
+                          ? 'Activa la ubicación del dispositivo para ver el círculo de 10 km'
+                          : 'Círculo azul = radio de 10 km desde tu ubicación',
+                    ),
                   ),
                 ),
                 Expanded(child: list),

@@ -71,9 +71,10 @@ class AppState extends ChangeNotifier {
     nickname = profile!.nickname;
 
     try {
-      userPosition = await geo.getCurrentPosition();
+      userPosition = await geo.getCurrentPosition(allowDemoFallback: false);
     } catch (_) {
-      userPosition = demoCenter;
+      // Sin inventar pueblo: el círculo 10 km solo con GPS real.
+      userPosition = null;
     }
 
     await push.init();
@@ -105,7 +106,13 @@ class AppState extends ChangeNotifier {
   }
 
   Future<void> refreshLocation() async {
-    userPosition = await geo.getCurrentPosition();
+    try {
+      userPosition = await geo.getCurrentPosition(allowDemoFallback: false);
+      error = null;
+    } catch (e) {
+      userPosition = null;
+      error = e.toString();
+    }
     notifyListeners();
   }
 
@@ -129,7 +136,8 @@ class AppState extends ChangeNotifier {
     required List<String> photoUrls,
     GeoPosition? pin,
   }) async {
-    final device = userPosition ?? await geo.getCurrentPosition();
+    final device =
+        userPosition ?? await geo.getCurrentPosition(allowDemoFallback: false);
     userPosition = device;
     final chosen = pin ?? device;
     final res = await repo.create(
@@ -151,7 +159,8 @@ class AppState extends ChangeNotifier {
   }
 
   Future<String?> vote(Complaint c, VoteType type) async {
-    final pos = userPosition ?? await geo.getCurrentPosition();
+    final pos =
+        userPosition ?? await geo.getCurrentPosition(allowDemoFallback: false);
     userPosition = pos;
     final res = await repo.vote(
       complaintId: c.id,
@@ -175,7 +184,8 @@ class AppState extends ChangeNotifier {
   }
 
   Future<String?> comment(Complaint c, String body) async {
-    final pos = userPosition ?? await geo.getCurrentPosition();
+    final pos =
+        userPosition ?? await geo.getCurrentPosition(allowDemoFallback: false);
     userPosition = pos;
     final res = await repo.addComment(
       complaintId: c.id,

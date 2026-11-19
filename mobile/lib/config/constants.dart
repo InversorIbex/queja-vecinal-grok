@@ -9,8 +9,12 @@ const double locationPrivacyRadiusM = 10000;
 const int maxPhotos = 4;
 const int maxPhotoBytes = 800 * 1024;
 
-/// Madrid centro — fallback demo si no hay geolocalización.
-const GeoPosition demoCenter = GeoPosition(lat: 40.4168, lng: -3.7038);
+/// Viewport inicial del mapa sin GPS. Nunca usarlo como posición del usuario
+/// ni para el círculo de 10 km.
+const GeoPosition mapDefaultCenter = GeoPosition(lat: 40.4168, lng: -3.7038);
+
+@Deprecated('Use mapDefaultCenter — not the user location')
+const GeoPosition demoCenter = mapDefaultCenter;
 
 /// Misma lista que web `CATEGORIES` (labels en español).
 const Map<ComplaintCategory, CategoryMeta> categories = {

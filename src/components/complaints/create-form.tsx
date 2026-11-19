@@ -30,7 +30,7 @@ const MiniMap = dynamic(() => import("@/components/map/mini-map"), { ssr: false 
 
 export function CreateComplaintForm() {
   const router = useRouter();
-  const { position, error: geoError, loading: geoLoading, usingDemo, refresh } =
+  const { position, error: geoError, loading: geoLoading, refresh } =
     useGeolocation();
   const isDesktop = useIsDesktop();
   const isLandscape = useIsLandscape();
@@ -166,16 +166,20 @@ export function CreateComplaintForm() {
               {geoLoading && <p>Obteniendo GPS…</p>}
               {!geoLoading && position && (
                 <p>
-                  GPS activo
-                  {usingDemo && " (demo Madrid — activa ubicación real en producción)"}
-                  . Toca el mapa para marcar el problema. Tu posición exacta no se
-                  guarda ni se muestra en público.
+                  GPS activo. Toca el mapa para marcar el problema (≤
+                  {(MAX_DISTANCE_M / 1000).toFixed(0)} km). Tu posición exacta no
+                  se guarda ni se muestra en público.
+                </p>
+              )}
+              {!geoLoading && !position && !geoError && (
+                <p className="text-orange-700 dark:text-orange-300">
+                  Esperando GPS del dispositivo…
                 </p>
               )}
               {geoError && (
                 <p className="flex items-center gap-1 text-orange-700 dark:text-orange-300">
                   <AlertTriangle className="h-3.5 w-3.5" />
-                  {geoError}
+                  {geoError} Sin GPS no se puede crear una queja (regla ≤10 km).
                 </p>
               )}
               <Button type="button" size="sm" variant="outline" className="mt-2" onClick={() => void refresh()}>

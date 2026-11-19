@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { Filter, Flame, Layers, MapPin } from "lucide-react";
-import { CATEGORIES, DEMO_CENTER } from "@/lib/constants";
+import { CATEGORIES, MAP_DEFAULT_CENTER } from "@/lib/constants";
 import type { Complaint, ComplaintCategory } from "@/types";
 import { useGeolocation } from "@/hooks/use-geolocation";
 import { useComplaintsSync } from "@/hooks/use-sync";
@@ -31,7 +31,7 @@ export function PublicMap() {
   const [layer, setLayer] = useState<LayerKey>("none");
   const [selected, setSelected] = useState<Complaint | null>(null);
   const [layerName, setLayerName] = useState<string | null>(null);
-  const { position, usingDemo, refresh } = useGeolocation();
+  const { position, error: geoError, refresh } = useGeolocation();
   const isDesktop = useIsDesktop();
   const isLandscape = useIsLandscape();
 
@@ -50,7 +50,8 @@ export function PublicMap() {
   const { syncLabel } = useComplaintsSync(load);
 
   const filtered = useMemo(() => complaints, [complaints]);
-  const center = position ?? DEMO_CENTER;
+  /** Solo GPS real centra el círculo 10 km; sin GPS el mapa usa viewport neutro. */
+  const center = position ?? MAP_DEFAULT_CENTER;
 
   return (
     <div
@@ -134,7 +135,11 @@ export function PublicMap() {
           )}
           <p className="rounded-lg bg-black/50 px-2 py-1 text-[10px] text-white">
             {syncLabel}
-            {usingDemo ? " · ubicación demo (Madrid)" : ""}
+            {!position && geoError
+              ? " · sin GPS — activa ubicación para el círculo 10 km"
+              : !position
+                ? " · obteniendo GPS…"
+                : ""}
           </p>
         </div>
       </div>

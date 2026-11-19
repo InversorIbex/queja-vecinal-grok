@@ -54,7 +54,7 @@ Sin claves → **modo demo** (`assets/env/default.env`). Guía: [`mobile/README.
 ### Cursor / deploy
 
 1. Añade `SUPABASE_URL` y `SUPABASE_ANON_KEY` en Cursor Secrets (o Vercel env).
-2. En Vercel, define también `NEXT_PUBLIC_SUPABASE_URL` y `NEXT_PUBLIC_SUPABASE_ANON_KEY` con los mismos valores.
+2. En Vercel, define también los espejos `NEXT_PUBLIC_SUPABASE_URL` y `NEXT_PUBLIC_SUPABASE_ANON_KEY` con los mismos valores (necesarios en Preview/Production para el bundle del navegador). El banner “modo demo” consulta `/api/status`, que también acepta las claves canónicas en runtime.
 3. Opcional servidor: `SUPABASE_SERVICE_ROLE_KEY` (solo server; nunca en móvil ni `NEXT_PUBLIC_`).
 
 ## Experiencia dual (móvil ↔ web)
