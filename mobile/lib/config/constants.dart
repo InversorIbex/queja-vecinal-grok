@@ -2,7 +2,10 @@ import '../models/models.dart';
 
 const String appName = 'QuejasVecinales';
 const String appTagline = 'Tu barrio, tu voz';
+/// Radio máx. GPS ↔ pin elegido (crear / votar / comentar).
 const double maxDistanceM = 10000;
+/// Radio de ofuscación del pin público (~diámetro 20 km).
+const double locationPrivacyRadiusM = 10000;
 const int maxPhotos = 4;
 const int maxPhotoBytes = 800 * 1024;
 

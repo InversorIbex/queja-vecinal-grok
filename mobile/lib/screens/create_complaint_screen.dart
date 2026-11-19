@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
 
 import '../config/constants.dart';
@@ -9,6 +10,7 @@ import '../config/env.dart';
 import '../config/theme.dart';
 import '../models/models.dart';
 import '../providers/app_state.dart';
+import '../services/geo_service.dart';
 import '../widgets/geofence_map.dart';
 
 class CreateComplaintScreen extends StatefulWidget {
@@ -27,6 +29,7 @@ class _CreateComplaintScreenState extends State<CreateComplaintScreen> {
   final List<XFile> _photos = [];
   bool _busy = false;
   String? _photoNote;
+  GeoPosition? _pin;
 
   @override
   void dispose() {
@@ -42,12 +45,26 @@ class _CreateComplaintScreenState extends State<CreateComplaintScreen> {
     setState(() => _photos.addAll(picked));
   }
 
+  void _onMapTap(LatLng p, GeoPosition device) {
+    final next = GeoPosition(lat: p.latitude, lng: p.longitude);
+    final check = assertWithin10km(device, next, action: 'ubicar la queja');
+    if (!check.ok) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(check.message ?? 'Fuera del radio de 10 km')),
+      );
+      return;
+    }
+    setState(() => _pin = next);
+  }
+
   Future<void> _submit() async {
     if (!_form.currentState!.validate()) return;
     setState(() => _busy = true);
     final state = context.read<AppState>();
     try {
       await state.refreshLocation();
+      final device = state.userPosition ?? demoCenter;
+      final pin = _pin ?? device;
       final urls = <String>[];
       for (final p in _photos) {
         urls.add(await state.photos.processAndUpload(p));
@@ -62,12 +79,13 @@ class _CreateComplaintScreenState extends State<CreateComplaintScreen> {
         category: _category,
         adminLevel: _admin,
         photoUrls: urls,
+        pin: pin,
       );
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            'Queja enviada (${c.id.substring(0, 8)}…). Queda pendiente de moderación.',
+            'Queja enviada (${c.id.substring(0, 8)}…). Pin público ofuscado (~20 km). Pendiente de moderación.',
           ),
         ),
       );
@@ -85,9 +103,35 @@ class _CreateComplaintScreenState extends State<CreateComplaintScreen> {
   @override
   Widget build(BuildContext context) {
     final state = context.watch<AppState>();
-    final pos = state.userPosition ?? demoCenter;
+    final device = state.userPosition ?? demoCenter;
+    final pin = _pin ?? device;
     final landscape =
         MediaQuery.orientationOf(context) == Orientation.landscape;
+
+    Widget mapBlock({required double height}) => Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Expanded(
+              child: GeofenceMap(
+                center: device,
+                height: height,
+                markers: [
+                  ComplaintMapMarker(
+                    lat: pin.lat,
+                    lng: pin.lng,
+                  ),
+                ],
+                onTap: (p) => _onMapTap(p, device),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'GPS (azul, no se guarda) · Toca el mapa para el pin del problema (≤10 km). '
+              'El pin público se ofusca (~${(locationPrivacyRadiusM * 2 / 1000).toStringAsFixed(0)} km diámetro).',
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ],
+        );
 
     final form = Form(
       key: _form,
@@ -97,7 +141,7 @@ class _CreateComplaintScreenState extends State<CreateComplaintScreen> {
           Text('Nueva queja', style: Theme.of(context).textTheme.headlineMedium),
           const SizedBox(height: 8),
           Text(
-            'Se usará tu ubicación actual. Debe estar dentro del radio de 10 km del problema.',
+            'Valida tu GPS a ≤10 km del punto elegido. Tu ubicación exacta nunca se almacena ni se muestra (ni a SUPER_ADMIN).',
             style: Theme.of(context).textTheme.bodyMedium,
           ),
           const SizedBox(height: 16),
@@ -213,12 +257,7 @@ class _CreateComplaintScreenState extends State<CreateComplaintScreen> {
           ],
           if (!landscape) ...[
             const SizedBox(height: 16),
-            GeofenceMap(center: pos, height: 220),
-            const SizedBox(height: 8),
-            Text(
-              'Círculo = 10 km desde tu posición (${pos.lat.toStringAsFixed(4)}, ${pos.lng.toStringAsFixed(4)})',
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
+            SizedBox(height: 240, child: mapBlock(height: 220)),
           ],
           const SizedBox(height: 24),
           FilledButton(
@@ -248,17 +287,10 @@ class _CreateComplaintScreenState extends State<CreateComplaintScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        Text('Tu ubicación + geofence 10 km',
+                        Text('GPS + pin del problema (≤10 km)',
                             style: Theme.of(context).textTheme.titleMedium),
                         const SizedBox(height: 12),
-                        Expanded(
-                          child: LayoutBuilder(
-                            builder: (context, constraints) => GeofenceMap(
-                              center: pos,
-                              height: constraints.maxHeight,
-                            ),
-                          ),
-                        ),
+                        Expanded(child: mapBlock(height: 400)),
                       ],
                     ),
                   ),

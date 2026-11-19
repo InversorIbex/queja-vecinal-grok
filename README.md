@@ -80,11 +80,15 @@ Abre [http://localhost:3000](http://localhost:3000). Sin secretos → **modo dem
 
 - Geolocalización obligatoria al **crear**, **votar** y **comentar**.
 - Distancia máxima **10 km** (Haversine en cliente + PostGIS/`within_10km` en servidor).
+- **Privacidad de ubicación:** el GPS exacto del vecino **nunca** se almacena ni se muestra (mapa, detalle, shares, panel SUPER_ADMIN).
+  - Al crear: GPS del dispositivo solo valida ≤10 km respecto al **pin elegido** en el mapa.
+  - Se guarda un **pin público ofuscado**: punto aleatorio (estable por id) dentro de un círculo de **radio ~10 km** (diámetro ~20 km) centrado en ese pin.
+  - Votar/comentar: GPS en tiempo real vs pin público ofuscado; no se persisten `voter_*` / `author_*` coords.
 - Quejas nuevas en `pending` hasta moderación.
 - Nick anónimo tipo `Vecino_4821` si no hay sesión.
 - Categorías (web + Flutter sincronizadas): Baches, Mobiliario, Parques, Limpieza, Iluminación, Señales, Agua/alcantarillado, Ruido, Animales/plagas, Transporte, Accesibilidad, Obras, Contenedores, Grafitis, Aparcamiento/semáforos, Contaminación, Seguridad, Playas/costa, Otros.
 - Destinos: Ayuntamiento / Provincia / Comunidad / Estado.
-- Moderación: rol `super_admin` (panel `/admin`) — aprobar/rechazar, quitar fotos, borrar comentarios, banear.
+- Moderación: rol `super_admin` (panel `/admin`) — aprobar/rechazar, quitar fotos, borrar comentarios, banear (mismas coords públicas ofuscadas; sin GPS exacto).
 
 ## Stack
 
@@ -99,7 +103,7 @@ Abre [http://localhost:3000](http://localhost:3000). Sin secretos → **modo dem
 
 Ver [`supabase/README.md`](supabase/README.md). Sin service role en CI no hay `db push` automático.
 
-1. SQL Editor → `001_init.sql`, opcional `002_seed_demo.sql`, luego `003_categories_super_admin.sql` (categorías + `super_admin` + `banned`).
+1. SQL Editor → `001_init.sql`, opcional `002_seed_demo.sql`, `003_categories_super_admin.sql`, luego `004_location_privacy.sql` (quita coords exactas de votos/comentarios y re-ofusca pines).
 2. O CLI: `npx supabase link --project-ref sxvuovnetndhtfrtgenc` luego `npx supabase db push`.
 3. Auth: Anonymous + Email + Google (opcional). Realtime en `complaints`, `votes`, `comments`.
 

@@ -16,7 +16,7 @@ const SLIDES = [
   {
     icon: ShieldCheck,
     title: "Solo vecinos cercanos",
-    body: "Para crear, votar o comentar debes estar a ≤10 km. Así evitamos spam y reforzamos la confianza.",
+    body: "Para crear, votar o comentar debes estar a ≤10 km. El pin público es aproximado (~20 km de diámetro): tu GPS exacto no se guarda.",
   },
   {
     icon: Smartphone,

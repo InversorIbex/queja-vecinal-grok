@@ -127,22 +127,27 @@ class AppState extends ChangeNotifier {
     required ComplaintCategory category,
     required AdminLevel adminLevel,
     required List<String> photoUrls,
+    GeoPosition? pin,
   }) async {
-    final pos = userPosition ?? await geo.getCurrentPosition();
-    userPosition = pos;
-    final c = await repo.create(
+    final device = userPosition ?? await geo.getCurrentPosition();
+    userPosition = device;
+    final chosen = pin ?? device;
+    final res = await repo.create(
       title: title,
       description: description,
       category: category,
       adminLevel: adminLevel,
-      lat: pos.lat,
-      lng: pos.lng,
+      pin: chosen,
+      device: device,
       photos: photoUrls,
       nickname: nickname,
       authorId: auth.currentUser?.id,
     );
+    if (!res.ok || res.complaint == null) {
+      throw Exception(res.message ?? 'No se pudo crear la queja');
+    }
     await refreshComplaints();
-    return c;
+    return res.complaint!;
   }
 
   Future<String?> vote(Complaint c, VoteType type) async {

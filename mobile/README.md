@@ -53,8 +53,9 @@ Sin Cloudinary, las fotos se comprimen (≤800 KB) y se guardan como path loca
 | Área | Detalle |
 |------|---------|
 | Auth | Anónima + email/password + Google (Supabase). Nick `Vecino_XXXX` local |
-| Crear queja | Título, descripción, categorías ampliadas (sync web), destino admin, ≤4 fotos, mapa + círculo 10 km |
-| Geofence | Haversine cliente ≤10 km al votar/comentar; servidor PostGIS cuando hay Supabase |
+| Crear queja | Título, descripción, categorías ampliadas (sync web), destino admin, ≤4 fotos, pin en mapa ≤10 km del GPS |
+| Privacidad | GPS del dispositivo nunca se guarda; pin público ofuscado (~10 km radio / ~20 km diámetro). Admin ve las mismas coords. |
+| Geofence | Haversine cliente ≤10 km al votar/comentar vs pin público; coords de voto/comentario no se persisten |
 | Feed / Mapa | Lista filtrable + pines OSM (`flutter_map`) |
 | Perfil | Reputación Novato→Experto Vecinal, seguir quejas, tema claro/oscuro |
 | Push | Stub FCM (`PushService`). Ver abajo |

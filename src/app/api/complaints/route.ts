@@ -15,8 +15,12 @@ const createSchema = z.object({
   description: z.string().min(10).max(2000),
   category: z.enum(COMPLAINT_CATEGORY_VALUES),
   admin_level: z.enum(["ayuntamiento", "provincia", "comunidad", "estado"]),
+  /** Pin elegido (mapa). El servidor lo ofusca antes de guardar. */
   lat: z.number().min(-90).max(90),
   lng: z.number().min(-180).max(180),
+  /** GPS del dispositivo: solo validación ≤10 km. Nunca se almacena. */
+  device_lat: z.number().min(-90).max(90),
+  device_lng: z.number().min(-180).max(180),
   photos: z.array(z.string()).max(MAX_PHOTOS).default([]),
   anonymous_nickname: z.string().min(3).max(40),
 });
@@ -76,13 +80,16 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Geolocalización obligatoria: lat/lng del usuario = ubicación de la queja
-    const complaint = await createComplaint(parsed.data);
+    // Validar GPS vs pin; persistir solo pin ofuscado (~10 km radio).
+    const result = await createComplaint(parsed.data);
+    if (!result.ok) {
+      return NextResponse.json({ error: result.message }, { status: 403 });
+    }
     return NextResponse.json(
       {
-        complaint,
+        complaint: result.complaint,
         message:
-          "Queja enviada. Quedará en pendiente de moderación hasta ser aprobada.",
+          "Queja enviada. El pin público es aproximado (privacidad ~20 km). Pendiente de moderación.",
       },
       { status: 201 }
     );

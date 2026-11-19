@@ -1,5 +1,5 @@
 import { demoStore } from "@/lib/demo-data";
-import { assertWithin10km } from "@/lib/geo";
+import { assertWithin10km, obfuscateLocation } from "@/lib/geo";
 import { destroyImageByUrl } from "@/lib/cloudinary";
 import { createServiceClient } from "@/lib/supabase/server";
 import { isDemoMode } from "@/lib/utils";
@@ -62,14 +62,29 @@ export async function createComplaint(input: {
   description: string;
   category: ComplaintCategory;
   admin_level: AdminLevel;
+  /** Pin elegido en el mapa (no GPS del dispositivo). */
   lat: number;
   lng: number;
+  /** GPS en tiempo real: solo validación ≤10 km al pin. Nunca se persiste. */
+  device_lat: number;
+  device_lng: number;
   photos: string[];
   anonymous_nickname: string;
   author_id?: string | null;
-}): Promise<Complaint> {
+}): Promise<
+  { ok: true; complaint: Complaint } | { ok: false; message: string }
+> {
+  const pin = { lat: input.lat, lng: input.lng };
+  const device = { lat: input.device_lat, lng: input.device_lng };
+  const geo = assertWithin10km(device, pin, "crear la queja");
+  if (!geo.ok) return { ok: false, message: geo.message };
+
+  const id = randomUUID();
+  // Pin público ofuscado (~10 km radio). El GPS del vecino no se guarda.
+  const publicPin = obfuscateLocation(pin, id);
+
   const complaint: Complaint = {
-    id: randomUUID(),
+    id,
     author_id: input.author_id ?? null,
     anonymous_nickname: input.anonymous_nickname,
     title: input.title,
@@ -77,8 +92,8 @@ export async function createComplaint(input: {
     category: input.category,
     admin_level: input.admin_level,
     status: "pending",
-    lat: input.lat,
-    lng: input.lng,
+    lat: publicPin.lat,
+    lng: publicPin.lng,
     photos: input.photos.slice(0, 4),
     votes_real: 0,
     votes_fake: 0,
@@ -90,13 +105,13 @@ export async function createComplaint(input: {
 
   if (isDemoMode() || !createServiceClient()) {
     demoStore.complaints.unshift(complaint);
-    return complaint;
+    return { ok: true, complaint };
   }
 
   const sb = createServiceClient()!;
   const { data, error } = await sb.from("complaints").insert(complaint).select().single();
   if (error) throw error;
-  return data as Complaint;
+  return { ok: true, complaint: data as Complaint };
 }
 
 export async function updateComplaintStatus(
@@ -162,6 +177,7 @@ export async function addVote(input: {
   );
   if (!geo.ok) return { ok: false, message: geo.message };
 
+  // GPS del votante solo para Haversine vs pin público; no se persiste.
   if (isDemoMode() || !createServiceClient()) {
     const existing = demoStore.votes.find(
       (v) =>
@@ -198,8 +214,6 @@ export async function addVote(input: {
       complaint_id: input.complaint_id,
       voter_nickname: input.voter_nickname,
       vote_type: input.vote_type,
-      voter_lat: input.voter_lat,
-      voter_lng: input.voter_lng,
       distance_m: geo.distance_m,
     },
     { onConflict: "complaint_id,voter_nickname" }
@@ -248,6 +262,7 @@ export async function addComment(input: {
     created_at: new Date().toISOString(),
   };
 
+  // GPS del autor solo para validar distancia; no se persiste.
   if (isDemoMode() || !createServiceClient()) {
     if (!demoStore.comments[input.complaint_id]) {
       demoStore.comments[input.complaint_id] = [];
@@ -260,11 +275,7 @@ export async function addComment(input: {
   const sb = createServiceClient()!;
   const { data, error } = await sb
     .from("comments")
-    .insert({
-      ...comment,
-      author_lat: input.author_lat,
-      author_lng: input.author_lng,
-    })
+    .insert(comment)
     .select()
     .single();
   if (error) throw error;

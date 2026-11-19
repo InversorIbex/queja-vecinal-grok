@@ -27,7 +27,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     (
       title: 'Regla de los 10 km',
       body:
-          'Solo puedes crear, votar o comentar si estás a ≤10 km del lugar. Así evitamos spam y mantenemos la voz local.',
+          'Solo puedes crear, votar o comentar si estás a ≤10 km del lugar. El pin público es aproximado (~20 km de diámetro): tu GPS exacto no se guarda.',
       icon: Icons.radar_outlined,
       accent: QvColors.alert,
     ),
