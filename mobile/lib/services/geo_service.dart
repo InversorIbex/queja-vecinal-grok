@@ -52,6 +52,49 @@ GeoCheck assertWithin10km(
   return GeoCheck.ok(d);
 }
 
+/// Pin público ofuscado: punto uniforme en disco de radio ~10 km (diámetro ~20 km).
+/// [seed] (p. ej. id de queja) hace el punto estable/reproducible.
+GeoPosition obfuscateLocation(
+  GeoPosition center, {
+  String? seed,
+  double radiusM = locationPrivacyRadiusM,
+}) {
+  final u = seed == null ? math.Random().nextDouble() : _seededUnit(seed, 0);
+  final v = seed == null ? math.Random().nextDouble() : _seededUnit(seed, 1);
+  final r = radiusM * math.sqrt(u);
+  final theta = 2 * math.pi * v;
+  final northM = r * math.cos(theta);
+  final eastM = r * math.sin(theta);
+  final dLat = (northM / _earthRadiusM) * (180 / math.pi);
+  final cosLat = math.cos(center.lat * math.pi / 180);
+  final dLng =
+      (eastM / (_earthRadiusM * math.max(0.01, cosLat))) * (180 / math.pi);
+  return GeoPosition(
+    lat: (center.lat + dLat).clamp(-90.0, 90.0),
+    lng: _wrapLng(center.lng + dLng),
+  );
+}
+
+double _seededUnit(String seed, int lane) {
+  var h = 0x811c9dc5 ^ (lane * 0x9e3779b9);
+  for (final cu in seed.codeUnits) {
+    h ^= cu;
+    h = (h * 0x01000193) & 0xffffffff;
+  }
+  h ^= h >> 16;
+  h = (h * 0x7feb352d) & 0xffffffff;
+  h ^= h >> 15;
+  h = (h * 0x846ca68b) & 0xffffffff;
+  h ^= h >> 16;
+  return (h & 0xffffffff) / 0x100000000;
+}
+
+double _wrapLng(double lng) {
+  var x = ((lng + 180) % 360 + 360) % 360 - 180;
+  if (x == -180) return 180;
+  return x;
+}
+
 extension on double {
   String toFixed(int n) => toStringAsFixed(n);
 }

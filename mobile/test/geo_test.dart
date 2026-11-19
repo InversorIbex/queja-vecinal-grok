@@ -22,4 +22,15 @@ void main() {
     expect(check.ok, isFalse);
     expect(check.message, contains('10 km'));
   });
+
+  test('obfuscateLocation: dentro del radio y estable con seed', () {
+    const center = GeoPosition(lat: 40.4168, lng: -3.7038);
+    final a = obfuscateLocation(center, seed: 'queja-1');
+    final b = obfuscateLocation(center, seed: 'queja-1');
+    expect(a.lat, closeTo(b.lat, 1e-9));
+    expect(a.lng, closeTo(b.lng, 1e-9));
+    final d = haversineMeters(center, a);
+    expect(d, lessThanOrEqualTo(locationPrivacyRadiusM + 1));
+    expect(d, greaterThan(0));
+  });
 }

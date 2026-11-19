@@ -165,9 +165,10 @@ class DemoStore {
     required List<String> photos,
     required String nickname,
     String? authorId,
+    String? id,
   }) {
     final c = Complaint(
-      id: _uuid.v4(),
+      id: id ?? _uuid.v4(),
       authorId: authorId,
       anonymousNickname: nickname,
       title: title,

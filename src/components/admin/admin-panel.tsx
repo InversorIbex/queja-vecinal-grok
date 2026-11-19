@@ -338,8 +338,8 @@ export function AdminPanel() {
                     {c.description}
                   </p>
                   <p className="mt-1 text-xs text-slate-400">
-                    {c.anonymous_nickname} · {c.lat.toFixed(4)},{" "}
-                    {c.lng.toFixed(4)}
+                    {c.anonymous_nickname} · ubicación pública aproximada
+                    (privacidad ~20 km; sin GPS exacto)
                   </p>
                   {c.photos.length > 0 && (
                     <div className="mt-3 flex flex-wrap gap-2">

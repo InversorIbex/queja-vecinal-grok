@@ -186,7 +186,8 @@ export function ComplaintDetail({ id }: { id: string }) {
           {complaint.title}
         </h1>
         <p className="text-sm text-slate-500">
-          {complaint.anonymous_nickname} · {formatDate(complaint.created_at)}
+          {complaint.anonymous_nickname} · {formatDate(complaint.created_at)} ·
+          ubicación aproximada (privacidad ~20 km)
         </p>
         <p className="leading-relaxed text-slate-700 dark:text-slate-200">
           {complaint.description}

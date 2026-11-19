@@ -6,7 +6,13 @@ import type {
 
 export const APP_NAME = "QuejasVecinales";
 export const APP_TAGLINE = "Tu barrio, tu voz";
+/** Radio máx. GPS ↔ pin elegido (crear / votar / comentar). */
 export const MAX_DISTANCE_M = 10_000;
+/**
+ * Radio del círculo de ofuscación del pin público (~diámetro 20 km).
+ * El GPS del dispositivo nunca se persiste; solo este punto aproximado.
+ */
+export const LOCATION_PRIVACY_RADIUS_M = 10_000;
 export const MAX_PHOTOS = 4;
 export const MAX_PHOTO_BYTES = 800 * 1024;
 

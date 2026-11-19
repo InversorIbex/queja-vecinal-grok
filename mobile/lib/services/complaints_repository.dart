@@ -47,33 +47,44 @@ class ComplaintsRepository {
     return row == null ? null : Complaint.fromJson(row);
   }
 
-  Future<Complaint> create({
+  Future<({bool ok, String? message, Complaint? complaint})> create({
     required String title,
     required String description,
     required ComplaintCategory category,
     required AdminLevel adminLevel,
-    required double lat,
-    required double lng,
+    required GeoPosition pin,
+    required GeoPosition device,
     required List<String> photos,
     required String nickname,
     String? authorId,
   }) async {
+    final geo = assertWithin10km(device, pin, action: 'crear la queja');
+    if (!geo.ok) {
+      return (ok: false, message: geo.message, complaint: null);
+    }
+
+    final id = _uuid.v4();
+    // Solo se persiste el pin ofuscado; el GPS del dispositivo no.
+    final publicPin = obfuscateLocation(pin, seed: id);
+
     if (Env.isDemoMode || _sb == null) {
-      return demoStore.createComplaint(
+      final c = demoStore.createComplaint(
+        id: id,
         title: title,
         description: description,
         category: category,
         adminLevel: adminLevel,
-        lat: lat,
-        lng: lng,
+        lat: publicPin.lat,
+        lng: publicPin.lng,
         photos: photos,
         nickname: nickname,
         authorId: authorId,
       );
+      return (ok: true, message: null, complaint: c);
     }
 
     final payload = {
-      'id': _uuid.v4(),
+      'id': id,
       'author_id': authorId,
       'anonymous_nickname': nickname,
       'title': title,
@@ -81,13 +92,13 @@ class ComplaintsRepository {
       'category': category.apiValue,
       'admin_level': adminLevel.apiValue,
       'status': 'pending',
-      'lat': lat,
-      'lng': lng,
+      'lat': publicPin.lat,
+      'lng': publicPin.lng,
       'photos': photos.take(4).toList(),
     };
     final row =
         await _sb!.from('complaints').insert(payload).select().single();
-    return Complaint.fromJson(row);
+    return (ok: true, message: null, complaint: Complaint.fromJson(row));
   }
 
   Future<({bool ok, String? message, double? distanceM})> vote({
@@ -138,12 +149,11 @@ class ComplaintsRepository {
       return (ok: true, message: null, distanceM: geo.distanceM);
     }
 
+    // GPS solo para Haversine vs pin público; no se persiste.
     await _sb!.from('votes').upsert({
       'complaint_id': complaintId,
       'voter_nickname': voterNickname,
       'vote_type': voteType.apiValue,
-      'voter_lat': voter.lat,
-      'voter_lng': voter.lng,
       'distance_m': geo.distanceM,
     }, onConflict: 'complaint_id,voter_nickname');
     return (ok: true, message: null, distanceM: geo.distanceM);
@@ -202,13 +212,12 @@ class ComplaintsRepository {
       return (ok: true, message: null, comment: comment);
     }
 
+    // GPS del autor solo para validar distancia; no se persiste.
     final row = await _sb!.from('comments').insert({
       'id': comment.id,
       'complaint_id': complaintId,
       'author_nickname': authorNickname,
       'body': comment.body,
-      'author_lat': author.lat,
-      'author_lng': author.lng,
       'distance_m': geo.distanceM,
     }).select().single();
     return (ok: true, message: null, comment: Comment.fromJson(row));

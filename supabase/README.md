@@ -29,6 +29,7 @@ Sin service role en CI no hay `db push` automático. Aplícalas en el proyecto r
    - [`migrations/001_init.sql`](migrations/001_init.sql) — extensiones PostGIS, tablas, RLS, triggers, `within_10km`.
    - [`migrations/002_seed_demo.sql`](migrations/002_seed_demo.sql) — opcional.
    - [`migrations/003_categories_super_admin.sql`](migrations/003_categories_super_admin.sql) — categorías ampliadas, rol `super_admin`, flag `banned`, helper `promote_super_admin_by_email`.
+   - [`migrations/004_location_privacy.sql`](migrations/004_location_privacy.sql) — sin GPS exacto: drop `voter_lat/lng` y `author_lat/lng`; re-ofusca `complaints.lat/lng`.
 3. **Authentication → Providers**: Anonymous, Email, (opcional) Google.
 4. (Opcional) Realtime: publica `complaints`, `votes`, `comments`.
 5. SUPER_ADMIN: `SELECT public.promote_super_admin_by_email('tu@email.com');` (mismo valor que `SUPER_ADMIN_EMAIL` en env).

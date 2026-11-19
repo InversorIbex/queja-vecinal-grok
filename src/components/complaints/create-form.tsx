@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import imageCompression from "browser-image-compression";
 import { motion } from "framer-motion";
@@ -9,14 +9,16 @@ import { toast } from "sonner";
 import {
   ADMIN_LEVELS,
   CATEGORIES,
+  LOCATION_PRIVACY_RADIUS_M,
   MAX_DISTANCE_M,
   MAX_PHOTO_BYTES,
   MAX_PHOTOS,
 } from "@/lib/constants";
+import { assertWithin10km } from "@/lib/geo";
 import { getOrCreateNickname } from "@/lib/utils";
 import { useGeolocation } from "@/hooks/use-geolocation";
 import { useIsDesktop, useIsLandscape } from "@/hooks/use-media-query";
-import type { AdminLevel, ComplaintCategory } from "@/types";
+import type { AdminLevel, ComplaintCategory, GeoPosition } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -39,6 +41,11 @@ export function CreateComplaintForm() {
   const [adminLevel, setAdminLevel] = useState<AdminLevel>("ayuntamiento");
   const [photos, setPhotos] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
+  const [pin, setPin] = useState<GeoPosition | null>(null);
+
+  useEffect(() => {
+    if (position && !pin) setPin(position);
+  }, [position, pin]);
 
   async function onFiles(files: FileList | null) {
     if (!files) return;
@@ -68,10 +75,28 @@ export function CreateComplaintForm() {
     setPhotos((p) => [...p, ...uploaded]);
   }
 
+  function onPickPin(next: GeoPosition) {
+    if (!position) {
+      toast.error("Espera a obtener el GPS antes de elegir el punto.");
+      return;
+    }
+    const check = assertWithin10km(position, next, "ubicar la queja");
+    if (!check.ok) {
+      toast.error(check.message);
+      return;
+    }
+    setPin(next);
+  }
+
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    if (!position) {
-      toast.error("Necesitamos tu ubicación para crear la queja (≤10 km).");
+    if (!position || !pin) {
+      toast.error("Necesitamos tu GPS y un punto en el mapa (≤10 km).");
+      return;
+    }
+    const check = assertWithin10km(position, pin, "crear la queja");
+    if (!check.ok) {
+      toast.error(check.message);
       return;
     }
     setSubmitting(true);
@@ -84,8 +109,10 @@ export function CreateComplaintForm() {
           description,
           category,
           admin_level: adminLevel,
-          lat: position.lat,
-          lng: position.lng,
+          lat: pin.lat,
+          lng: pin.lng,
+          device_lat: position.lat,
+          device_lng: position.lng,
           photos,
           anonymous_nickname: getOrCreateNickname(),
         }),
@@ -125,9 +152,10 @@ export function CreateComplaintForm() {
             Subir Queja
           </h1>
           <p className="mt-1 text-sm text-slate-500">
-            Debes estar en el lugar del problema. Radio máximo{" "}
-            {(MAX_DISTANCE_M / 1000).toFixed(0)} km. Sin registro obligatorio —
-            nick anónimo.
+            Elige el punto del problema a ≤{(MAX_DISTANCE_M / 1000).toFixed(0)}{" "}
+            km de tu GPS. El pin público se ofusca en un círculo de ~{" "}
+            {((LOCATION_PRIVACY_RADIUS_M * 2) / 1000).toFixed(0)} km de diámetro
+            (privacidad). Nick anónimo, sin registro obligatorio.
           </p>
         </div>
 
@@ -135,11 +163,13 @@ export function CreateComplaintForm() {
           <div className="flex items-start gap-2">
             <MapPin className="mt-0.5 h-4 w-4 shrink-0" />
             <div>
-              {geoLoading && <p>Obteniendo ubicación…</p>}
+              {geoLoading && <p>Obteniendo GPS…</p>}
               {!geoLoading && position && (
                 <p>
-                  Ubicación: {position.lat.toFixed(5)}, {position.lng.toFixed(5)}
-                  {usingDemo && " (demo Madrid — activa GPS para producción)"}
+                  GPS activo
+                  {usingDemo && " (demo Madrid — activa ubicación real en producción)"}
+                  . Toca el mapa para marcar el problema. Tu posición exacta no se
+                  guarda ni se muestra en público.
                 </p>
               )}
               {geoError && (
@@ -149,7 +179,7 @@ export function CreateComplaintForm() {
                 </p>
               )}
               <Button type="button" size="sm" variant="outline" className="mt-2" onClick={() => void refresh()}>
-                Actualizar ubicación
+                Actualizar GPS
               </Button>
             </div>
           </div>
@@ -243,7 +273,7 @@ export function CreateComplaintForm() {
           <strong>pendiente de moderación</strong>.
         </p>
 
-        <Button type="submit" size="lg" className="w-full" disabled={submitting || !position}>
+        <Button type="submit" size="lg" className="w-full" disabled={submitting || !position || !pin}>
           {submitting ? (
             <>
               <Loader2 className="h-4 w-4 animate-spin" /> Enviando…
@@ -256,10 +286,21 @@ export function CreateComplaintForm() {
 
       <div className="min-h-[240px] overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-700 lg:min-h-[480px]">
         {position ? (
-          <MiniMap center={position} radiusM={MAX_DISTANCE_M} />
+          <div className="flex h-full min-h-[240px] flex-col">
+            <MiniMap
+              center={position}
+              pin={pin ?? position}
+              radiusM={MAX_DISTANCE_M}
+              onPinChange={onPickPin}
+            />
+            <p className="border-t border-slate-200 px-3 py-2 text-xs text-slate-500 dark:border-slate-700">
+              Azul = tu GPS (no se guarda) · Naranja = pin del problema · Círculo ={" "}
+              {(MAX_DISTANCE_M / 1000).toFixed(0)} km
+            </p>
+          </div>
         ) : (
           <div className="flex h-full min-h-[240px] items-center justify-center text-sm text-slate-500">
-            Esperando ubicación…
+            Esperando GPS…
           </div>
         )}
       </div>
