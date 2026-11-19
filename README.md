@@ -35,12 +35,11 @@ Abre [http://localhost:3000](http://localhost:3000). Sin secretos → **modo dem
 
 ```bash
 cd mobile
-cp .env.example .env
 flutter pub get
 flutter run
 ```
 
-Sin `SUPABASE_URL` / `SUPABASE_ANON_KEY` → **modo demo**. Guía: [`mobile/README.md`](mobile/README.md).
+Sin `SUPABASE_URL` / `SUPABASE_ANON_KEY` → **modo demo**. Para producción: copia `.env.example` → `assets/env/.env`. Guía: [`mobile/README.md`](mobile/README.md).
 
 ## Reglas de negocio
 
