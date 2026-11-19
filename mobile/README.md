@@ -26,18 +26,18 @@ Verás un banner ámbar: **Modo demo**. Ideal para probar onboarding, mapa + cí
 
 ## Conectar a Supabase (sync real con la web)
 
-1. Crea/usa el mismo proyecto Supabase que la web.
-2. Ejecuta las migraciones SQL (`supabase/migrations/001_init.sql` en la rama web).
-3. Rellena `mobile/assets/env/.env` (o exporta las mismas vars):
+1. Usa el mismo proyecto Supabase que la web (`https://sxvuovnetndhtfrtgenc.supabase.co` u otro).
+2. Aplica migraciones: ver [`../supabase/README.md`](../supabase/README.md) (SQL Editor o `supabase db push`). Sin service role en CI no hay push automático.
+3. `cp .env.example assets/env/.env` y rellena la **publishable/anon key** (nunca la subas al git):
 
 ```env
-SUPABASE_URL=https://xxxx.supabase.co
-SUPABASE_ANON_KEY=eyJ...
+SUPABASE_URL=https://sxvuovnetndhtfrtgenc.supabase.co
+SUPABASE_ANON_KEY=sb_publishable_…   # o legacy anon jwt
 ```
 
 4. En el dashboard Supabase activa **Anonymous sign-in** (y opcionalmente Email / Google).
 5. Redirect OAuth Google: `io.supabase.quejasvecinales://login-callback/`
-6. `flutter run` — los datos son los mismos que ve la PWA/web.
+6. `flutter run` — los datos son los mismos que ve la web.
 
 ### Cloudinary (fotos)
 

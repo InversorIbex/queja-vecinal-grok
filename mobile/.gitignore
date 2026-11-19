@@ -1,3 +1,9 @@
+# Env secrets (keep .env.example / assets/env/default.env)
+.env
+.env.*
+!.env.example
+assets/env/.env
+
 # Miscellaneous
 *.class
 *.log
@@ -20,10 +26,6 @@ migrate_working_dir/
 # VS Code which you may wish to be included in version control, so this line
 # is commented out by default.
 #.vscode/
-
-# Env locales (no secrets en git)
-.env
-assets/env/.env
 
 # Flutter/Dart/Pub related
 **/doc/api/

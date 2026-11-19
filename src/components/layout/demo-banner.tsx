@@ -5,7 +5,15 @@ import { useEffect, useState } from "react";
 export function DemoBanner() {
   const [demo, setDemo] = useState(false);
   useEffect(() => {
-    setDemo(!process.env.NEXT_PUBLIC_SUPABASE_URL);
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim() ?? "";
+    const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim() ?? "";
+    setDemo(
+      !url ||
+        !key ||
+        url.includes("YOUR_PROJECT") ||
+        key === "your_anon_key" ||
+        key === "your_publishable_or_anon_key"
+    );
   }, []);
   if (!demo) return null;
   return (

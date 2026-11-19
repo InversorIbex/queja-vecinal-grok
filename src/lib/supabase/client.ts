@@ -1,12 +1,10 @@
 import { createBrowserClient } from "@supabase/ssr";
+import { getSupabaseAnonKey, getSupabaseUrl } from "@/lib/supabase/config";
 import { isDemoMode } from "@/lib/utils";
 
 export function createClient() {
   if (isDemoMode()) {
     return null;
   }
-  return createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
+  return createBrowserClient(getSupabaseUrl(), getSupabaseAnonKey());
 }

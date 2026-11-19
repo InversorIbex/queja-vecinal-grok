@@ -3,6 +3,7 @@ import { z } from "zod";
 import { createComplaint, listComplaints } from "@/lib/complaints-store";
 import { rateLimit } from "@/lib/rate-limit";
 import { MAX_PHOTOS } from "@/lib/constants";
+import { isDemoMode } from "@/lib/utils";
 
 const createSchema = z.object({
   title: z.string().min(5).max(120),
@@ -44,7 +45,7 @@ export async function GET(req: NextRequest) {
       status: status ?? "public",
       category: category ?? undefined,
     });
-    return NextResponse.json({ complaints, demo: !process.env.NEXT_PUBLIC_SUPABASE_URL });
+    return NextResponse.json({ complaints, demo: isDemoMode() });
   } catch (e) {
     console.error(e);
     return NextResponse.json({ error: "Error al listar quejas" }, { status: 500 });

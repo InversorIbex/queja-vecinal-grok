@@ -12,6 +12,51 @@ UI 100 % en español. Marca: **QuejasVecinales**.
 | **Web / PWA** | raíz (Next.js) | APIs + shell adaptativo |
 | **Móvil nativo** | [`mobile/`](mobile/) | Flutter iOS + Android — **no** es WebView/PWA |
 
+## Secretos (no commitear)
+
+Nombres canónicos (Cursor Secrets / hosting / Flutter):
+
+| Variable | Uso |
+|----------|-----|
+| `SUPABASE_URL` | URL del proyecto Supabase |
+| `SUPABASE_ANON_KEY` | Clave publishable / anon |
+
+**Nunca** subas claves reales al repo. Solo placeholders en `*.env.example`.
+
+### Web (Next.js) — local
+
+```bash
+cp .env.example .env.local
+```
+
+Define las canónicas **y** los espejos del navegador:
+
+```env
+SUPABASE_URL=https://sxvuovnetndhtfrtgenc.supabase.co
+SUPABASE_ANON_KEY=your_publishable_or_anon_key
+NEXT_PUBLIC_SUPABASE_URL=${SUPABASE_URL}
+NEXT_PUBLIC_SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}
+```
+
+`NEXT_PUBLIC_*` **no** se declaran como Cursor App Secrets (reservados); usa `SUPABASE_URL` / `SUPABASE_ANON_KEY` ahí. `next.config.ts` mapea canónicas → `NEXT_PUBLIC_*` en build.
+
+### Móvil (Flutter)
+
+```bash
+cd mobile
+cp .env.example assets/env/.env   # gitignored
+flutter pub get
+flutter run
+```
+
+Sin claves → **modo demo** (`assets/env/default.env`). Guía: [`mobile/README.md`](mobile/README.md).
+
+### Cursor / deploy
+
+1. Añade `SUPABASE_URL` y `SUPABASE_ANON_KEY` en Cursor Secrets (o Vercel env).
+2. En Vercel, define también `NEXT_PUBLIC_SUPABASE_URL` y `NEXT_PUBLIC_SUPABASE_ANON_KEY` con los mismos valores.
+3. Opcional servidor: `SUPABASE_SERVICE_ROLE_KEY` (solo server; nunca en móvil ni `NEXT_PUBLIC_`).
+
 ## Experiencia dual (móvil ↔ web)
 
 | | Móvil nativo (Flutter) | Web / escritorio |
@@ -31,16 +76,6 @@ npm run dev
 
 Abre [http://localhost:3000](http://localhost:3000). Sin secretos → **modo demo**. Admin: `/admin` con secreto `demo-admin`.
 
-## Arranque — Flutter
-
-```bash
-cd mobile
-flutter pub get
-flutter run
-```
-
-Sin `SUPABASE_URL` / `SUPABASE_ANON_KEY` → **modo demo**. Para producción: copia `.env.example` → `assets/env/.env`. Guía: [`mobile/README.md`](mobile/README.md).
-
 ## Reglas de negocio
 
 - Geolocalización obligatoria al **crear**, **votar** y **comentar**.
@@ -59,26 +94,13 @@ Sin `SUPABASE_URL` / `SUPABASE_ANON_KEY` → **modo demo**. Para producción: co
 - Mapas OSM (Leaflet web / flutter_map móvil)  
 - Tipografía: **Fraunces** + **Manrope**
 
-## Supabase + PostGIS
+## Aplicar migraciones Supabase
 
-1. Crea un proyecto Supabase.
-2. SQL Editor → ejecuta `supabase/migrations/001_init.sql`.
-3. Web (`.env.local`):
+Ver [`supabase/README.md`](supabase/README.md). Sin service role en CI no hay `db push` automático.
 
-```env
-NEXT_PUBLIC_SUPABASE_URL=...
-NEXT_PUBLIC_SUPABASE_ANON_KEY=...
-SUPABASE_SERVICE_ROLE_KEY=...
-```
-
-4. Flutter (`mobile/.env`):
-
-```env
-SUPABASE_URL=...
-SUPABASE_ANON_KEY=...
-```
-
-5. Auth: Anonymous + Email + Google (opcional). Realtime en `complaints`, `votes`, `comments`.
+1. SQL Editor → `supabase/migrations/001_init.sql` (y opcional `002_seed_demo.sql`).
+2. O CLI: `npx supabase link --project-ref sxvuovnetndhtfrtgenc` luego `npx supabase db push`.
+3. Auth: Anonymous + Email + Google (opcional). Realtime en `complaints`, `votes`, `comments`.
 
 ## Cloudinary / Web Push
 
@@ -104,5 +126,5 @@ public/sw.js       # PWA + push
 
 ## Deploy (Vercel)
 
-Conecta el repo, define las env vars del `.env.example` y despliega.  
+Conecta el repo, define las env vars del `.env.example` (incluidos espejos `NEXT_PUBLIC_*`) y despliega.  
 Web y Flutter comparten el mismo Supabase.
