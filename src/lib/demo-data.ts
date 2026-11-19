@@ -1,0 +1,205 @@
+import type { Comment, Complaint, RankingEntry, Report, Vote } from "@/types";
+
+const now = Date.now();
+
+export const DEMO_COMPLAINTS: Complaint[] = [
+  {
+    id: "demo-1",
+    anonymous_nickname: "Vecino_4821",
+    title: "Bache peligroso en Calle Mayor",
+    description:
+      "Hay un bache profundo junto al paso de peatones que ya ha dañado varias ruedas. Urge reparación.",
+    category: "baches_carreteras",
+    admin_level: "ayuntamiento",
+    status: "approved",
+    lat: 40.4165,
+    lng: -3.7042,
+    photos: [],
+    votes_real: 24,
+    votes_fake: 1,
+    votes_resolved: 2,
+    comments_count: 5,
+    created_at: new Date(now - 86400000 * 3).toISOString(),
+    updated_at: new Date(now - 86400000 * 2).toISOString(),
+  },
+  {
+    id: "demo-2",
+    anonymous_nickname: "Vecino_1190",
+    title: "Farola apagada en Plaza del Sol",
+    description:
+      "La farola del extremo norte lleva más de una semana sin luz. Zona muy oscura por la noche.",
+    category: "iluminacion",
+    admin_level: "ayuntamiento",
+    status: "approved",
+    lat: 40.4198,
+    lng: -3.7015,
+    photos: [],
+    votes_real: 18,
+    votes_fake: 0,
+    votes_resolved: 0,
+    comments_count: 3,
+    created_at: new Date(now - 86400000 * 5).toISOString(),
+    updated_at: new Date(now - 86400000 * 4).toISOString(),
+  },
+  {
+    id: "demo-3",
+    anonymous_nickname: "Vecino_7733",
+    title: "Contenedores desbordados",
+    description:
+      "Los contenedores de orgánicos llevan días llenos y hay basura alrededor. Mal olor y plagas.",
+    category: "limpieza",
+    admin_level: "ayuntamiento",
+    status: "approved",
+    lat: 40.412,
+    lng: -3.7105,
+    photos: [],
+    votes_real: 31,
+    votes_fake: 2,
+    votes_resolved: 1,
+    comments_count: 8,
+    created_at: new Date(now - 86400000 * 1).toISOString(),
+    updated_at: new Date(now - 86400000 * 1).toISOString(),
+  },
+  {
+    id: "demo-4",
+    anonymous_nickname: "Vecino_2201",
+    title: "Banco roto en el parque",
+    description:
+      "Uno de los bancos del parque infantil está partido y tiene clavos salidos. Riesgo para niños.",
+    category: "parques_jardines",
+    admin_level: "ayuntamiento",
+    status: "resolved",
+    lat: 40.421,
+    lng: -3.695,
+    photos: [],
+    votes_real: 12,
+    votes_fake: 0,
+    votes_resolved: 15,
+    comments_count: 4,
+    created_at: new Date(now - 86400000 * 14).toISOString(),
+    updated_at: new Date(now - 86400000 * 2).toISOString(),
+  },
+  {
+    id: "demo-5",
+    anonymous_nickname: "Vecino_9055",
+    title: "Señal de stop ilegible",
+    description:
+      "La señal de stop en el cruce está muy deteriorada y casi no se ve de noche.",
+    category: "senales",
+    admin_level: "provincia",
+    status: "pending",
+    lat: 40.408,
+    lng: -3.692,
+    photos: [],
+    votes_real: 0,
+    votes_fake: 0,
+    votes_resolved: 0,
+    comments_count: 0,
+    created_at: new Date(now - 3600000 * 6).toISOString(),
+    updated_at: new Date(now - 3600000 * 6).toISOString(),
+  },
+  {
+    id: "demo-6",
+    anonymous_nickname: "Vecino_3344",
+    title: "Papelera volcada en avenida",
+    description:
+      "Una papelera está tumbada y el contenido se esparce con el viento.",
+    category: "mobiliario_urbano",
+    admin_level: "ayuntamiento",
+    status: "approved",
+    lat: 40.425,
+    lng: -3.712,
+    photos: [],
+    votes_real: 7,
+    votes_fake: 0,
+    votes_resolved: 0,
+    comments_count: 1,
+    created_at: new Date(now - 86400000 * 7).toISOString(),
+    updated_at: new Date(now - 86400000 * 6).toISOString(),
+  },
+];
+
+export const DEMO_COMMENTS: Record<string, Comment[]> = {
+  "demo-1": [
+    {
+      id: "c1",
+      complaint_id: "demo-1",
+      author_nickname: "Vecino_1190",
+      body: "Confirmo, casi me caigo ayer con la bici.",
+      distance_m: 420,
+      created_at: new Date(now - 86400000 * 2).toISOString(),
+    },
+    {
+      id: "c2",
+      complaint_id: "demo-1",
+      author_nickname: "Vecino_7733",
+      body: "Ya lo denuncié también al 010 hace una semana.",
+      distance_m: 890,
+      created_at: new Date(now - 86400000 * 1).toISOString(),
+    },
+  ],
+  "demo-2": [
+    {
+      id: "c3",
+      complaint_id: "demo-2",
+      author_nickname: "Vecino_4821",
+      body: "Zona muy transitada, prioridad alta.",
+      distance_m: 210,
+      created_at: new Date(now - 86400000 * 3).toISOString(),
+    },
+  ],
+};
+
+export const DEMO_VOTES: Vote[] = [];
+
+export const DEMO_REPORTS: Report[] = [
+  {
+    id: "r1",
+    complaint_id: "demo-5",
+    reporter_nickname: "Vecino_4821",
+    reason: "Posible duplicado de otra queja cercana",
+    status: "open",
+    created_at: new Date(now - 3600000 * 2).toISOString(),
+  },
+];
+
+export const DEMO_RANKINGS: RankingEntry[] = [
+  {
+    nickname: "Vecino_4821",
+    reputation_points: 320,
+    reputation_level: "Referente",
+    complaints_count: 12,
+  },
+  {
+    nickname: "Vecino_7733",
+    reputation_points: 210,
+    reputation_level: "Vigilante",
+    complaints_count: 8,
+  },
+  {
+    nickname: "Vecino_1190",
+    reputation_points: 145,
+    reputation_level: "Vecino Activo",
+    complaints_count: 5,
+  },
+  {
+    nickname: "Vecino_2201",
+    reputation_points: 88,
+    reputation_level: "Vecino Activo",
+    complaints_count: 4,
+  },
+  {
+    nickname: "Vecino_9055",
+    reputation_points: 22,
+    reputation_level: "Novato",
+    complaints_count: 1,
+  },
+];
+
+/** In-memory mutable store for demo mode (server process). */
+export const demoStore = {
+  complaints: [...DEMO_COMPLAINTS] as Complaint[],
+  comments: { ...DEMO_COMMENTS } as Record<string, Comment[]>,
+  votes: [...DEMO_VOTES] as Vote[],
+  reports: [...DEMO_REPORTS] as Report[],
+};

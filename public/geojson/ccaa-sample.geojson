@@ -1,0 +1,25 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": { "name": "Comunidad de Madrid", "level": "ccaa" },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [-4.6, 41.2], [-3.0, 41.2], [-3.0, 39.9], [-4.6, 39.9], [-4.6, 41.2]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Castilla-La Mancha", "level": "ccaa" },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [-5.0, 39.9], [-1.5, 39.9], [-1.5, 38.0], [-5.0, 38.0], [-5.0, 39.9]
+        ]]
+      }
+    }
+  ]
+}
