@@ -80,5 +80,11 @@ export const POINTS = {
   complaintResolvedBonus: 10,
 } as const;
 
-/** Madrid centro — fallback demo si no hay geolocalización */
-export const DEMO_CENTER = { lat: 40.4168, lng: -3.7038 };
+/**
+ * Viewport inicial del mapa cuando aún no hay GPS del dispositivo.
+ * Nunca usarlo como posición del usuario ni para el círculo de 10 km.
+ */
+export const MAP_DEFAULT_CENTER = { lat: 40.4168, lng: -3.7038 };
+
+/** @deprecated Prefer MAP_DEFAULT_CENTER — no es la ubicación del usuario */
+export const DEMO_CENTER = MAP_DEFAULT_CENTER;

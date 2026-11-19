@@ -115,10 +115,14 @@ class GeoService {
     return enabled;
   }
 
-  Future<GeoPosition> getCurrentPosition({bool allowDemoFallback = true}) async {
+  /// Device GPS only. Never invents a town (Madrid/etc.) — callers must
+  /// treat a thrown error as "no position" so the 10 km circle is not misplaced.
+  Future<GeoPosition> getCurrentPosition({
+    bool allowDemoFallback = false,
+  }) async {
     final ok = await ensurePermission();
     if (!ok) {
-      if (allowDemoFallback) return demoCenter;
+      if (allowDemoFallback) return mapDefaultCenter;
       throw Exception(
         'Permiso de ubicación denegado. Actívalo para crear o votar quejas.',
       );
@@ -135,8 +139,8 @@ class GeoService {
         lng: pos.longitude,
         accuracy: pos.accuracy,
       );
-    } catch (_) {
-      if (allowDemoFallback) return demoCenter;
+    } catch (e) {
+      if (allowDemoFallback) return mapDefaultCenter;
       rethrow;
     }
   }

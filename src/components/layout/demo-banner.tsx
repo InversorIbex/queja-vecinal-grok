@@ -2,18 +2,28 @@
 
 import { useEffect, useState } from "react";
 
+/**
+ * Asks the server (canonical SUPABASE_URL / ANON_KEY + NEXT_PUBLIC mirrors)
+ * instead of trusting only inlined NEXT_PUBLIC_* in the browser bundle.
+ * Cursor Secrets / Vercel runtime env are visible to `/api/status`.
+ */
 export function DemoBanner() {
   const [demo, setDemo] = useState(false);
   useEffect(() => {
-    const url = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim() ?? "";
-    const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim() ?? "";
-    setDemo(
-      !url ||
-        !key ||
-        url.includes("YOUR_PROJECT") ||
-        key === "your_anon_key" ||
-        key === "your_publishable_or_anon_key"
-    );
+    let cancelled = false;
+    void (async () => {
+      try {
+        const res = await fetch("/api/status");
+        if (!res.ok) return;
+        const data = (await res.json()) as { demo?: boolean };
+        if (!cancelled) setDemo(Boolean(data.demo));
+      } catch {
+        /* keep hidden on network errors — avoid false demo banner */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, []);
   if (!demo) return null;
   return (

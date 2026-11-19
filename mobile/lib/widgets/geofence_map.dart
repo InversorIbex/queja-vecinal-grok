@@ -62,12 +62,13 @@ class GeofenceMap extends StatelessWidget {
               ),
             MarkerLayer(
               markers: [
-                Marker(
-                  point: c,
-                  width: 36,
-                  height: 36,
-                  child: const Icon(Icons.my_location, color: QvColors.trust),
-                ),
+                if (showGeofence)
+                  Marker(
+                    point: c,
+                    width: 36,
+                    height: 36,
+                    child: const Icon(Icons.my_location, color: QvColors.trust),
+                  ),
                 ...markers.map(
                   (m) => Marker(
                     point: LatLng(m.lat, m.lng),

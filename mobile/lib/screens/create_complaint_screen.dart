@@ -63,7 +63,12 @@ class _CreateComplaintScreenState extends State<CreateComplaintScreen> {
     final state = context.read<AppState>();
     try {
       await state.refreshLocation();
-      final device = state.userPosition ?? demoCenter;
+      final device = state.userPosition;
+      if (device == null) {
+        throw Exception(
+          'Necesitamos el GPS del dispositivo para crear una queja (regla ≤10 km).',
+        );
+      }
       final pin = _pin ?? device;
       final urls = <String>[];
       for (final p in _photos) {
@@ -103,35 +108,63 @@ class _CreateComplaintScreenState extends State<CreateComplaintScreen> {
   @override
   Widget build(BuildContext context) {
     final state = context.watch<AppState>();
-    final device = state.userPosition ?? demoCenter;
+    final device = state.userPosition;
     final pin = _pin ?? device;
     final landscape =
         MediaQuery.orientationOf(context) == Orientation.landscape;
 
-    Widget mapBlock({required double height}) => Column(
+    Widget mapBlock({required double height}) {
+      if (device == null) {
+        return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Expanded(
               child: GeofenceMap(
-                center: device,
+                center: mapDefaultCenter,
+                showGeofence: false,
                 height: height,
-                markers: [
-                  ComplaintMapMarker(
-                    lat: pin.lat,
-                    lng: pin.lng,
-                  ),
-                ],
-                onTap: (p) => _onMapTap(p, device),
+                interactive: false,
               ),
             ),
             const SizedBox(height: 8),
             Text(
-              'GPS (azul, no se guarda) · Toca el mapa para el pin del problema (≤10 km). '
-              'El pin público se ofusca (~${(locationPrivacyRadiusM * 2 / 1000).toStringAsFixed(0)} km diámetro).',
+              'Activa el GPS del dispositivo. Sin ubicación real no se puede '
+              'crear una queja (regla ≤10 km).',
               style: Theme.of(context).textTheme.bodySmall,
+            ),
+            TextButton(
+              onPressed: () => state.refreshLocation(),
+              child: const Text('Reintentar GPS'),
             ),
           ],
         );
+      }
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Expanded(
+            child: GeofenceMap(
+              center: device,
+              height: height,
+              markers: [
+                if (pin != null)
+                  ComplaintMapMarker(
+                    lat: pin.lat,
+                    lng: pin.lng,
+                  ),
+              ],
+              onTap: (p) => _onMapTap(p, device),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'GPS (azul, no se guarda) · Toca el mapa para el pin del problema (≤10 km). '
+            'El pin público se ofusca (~${(locationPrivacyRadiusM * 2 / 1000).toStringAsFixed(0)} km diámetro).',
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+        ],
+      );
+    }
 
     final form = Form(
       key: _form,

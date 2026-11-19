@@ -12,8 +12,8 @@ Proyecto de referencia (URL pública, no es secreto):
 |--------|--------|
 | `SUPABASE_URL` | Cursor Secrets, Flutter `mobile/assets/env/.env`, server |
 | `SUPABASE_ANON_KEY` | Idem (clave publishable / anon) |
-| `NEXT_PUBLIC_SUPABASE_URL` | Solo Next local / Vercel (espejo para el navegador) |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Idem |
+| `NEXT_PUBLIC_SUPABASE_URL` | Espejo para el navegador (Next local / Vercel Preview+Production) |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Idem — sin espejo, el cliente puede verse “demo” aunque el server tenga `SUPABASE_*` |
 | `SUPABASE_SERVICE_ROLE_KEY` | Solo server (admin / bypass RLS). Nunca en móvil ni git. |
 
 No commitees claves. Placeholders en `.env.example` y `mobile/.env.example`.
