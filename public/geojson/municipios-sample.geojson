@@ -1,0 +1,25 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": { "name": "Madrid", "level": "municipio" },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [-3.75, 40.48], [-3.65, 40.48], [-3.65, 40.38], [-3.75, 40.38], [-3.75, 40.48]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Getafe", "level": "municipio" },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [-3.75, 40.33], [-3.68, 40.33], [-3.68, 40.28], [-3.75, 40.28], [-3.75, 40.33]
+        ]]
+      }
+    }
+  ]
+}
