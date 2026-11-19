@@ -1,15 +1,31 @@
-export type UserRole = "user" | "admin";
+export type UserRole = "user" | "admin" | "super_admin";
 
 export type ComplaintStatus = "pending" | "approved" | "rejected" | "resolved";
 
-export type ComplaintCategory =
-  | "baches_carreteras"
-  | "mobiliario_urbano"
-  | "parques_jardines"
-  | "limpieza"
-  | "iluminacion"
-  | "senales"
-  | "otros";
+/** Valores API sincronizados con Flutter `ComplaintCategory` / SQL CHECK. */
+export const COMPLAINT_CATEGORY_VALUES = [
+  "baches_carreteras",
+  "mobiliario_urbano",
+  "parques_jardines",
+  "limpieza",
+  "iluminacion",
+  "senales",
+  "agua_alcantarillado",
+  "ruido",
+  "animales_plagas",
+  "transporte_publico",
+  "accesibilidad",
+  "obras_andamios",
+  "contenedores",
+  "grafitis_vandalismo",
+  "aparcamiento_semaforos",
+  "contaminacion",
+  "seguridad_ciudadana",
+  "playas_costa",
+  "otros",
+] as const;
+
+export type ComplaintCategory = (typeof COMPLAINT_CATEGORY_VALUES)[number];
 
 export type AdminLevel =
   | "ayuntamiento"
@@ -29,7 +45,9 @@ export type ReputationLevel =
 export interface Profile {
   id: string;
   nickname: string;
+  email?: string | null;
   role: UserRole;
+  banned: boolean;
   reputation_points: number;
   reputation_level: ReputationLevel;
   avatar_url?: string | null;

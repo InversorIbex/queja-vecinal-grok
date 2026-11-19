@@ -1,7 +1,8 @@
-enum UserRole { user, admin }
+enum UserRole { user, admin, superAdmin }
 
 enum ComplaintStatus { pending, approved, rejected, resolved }
 
+/// Sincronizado con web `COMPLAINT_CATEGORY_VALUES` / SQL CHECK.
 enum ComplaintCategory {
   bachesCarreteras,
   mobiliarioUrbano,
@@ -9,6 +10,18 @@ enum ComplaintCategory {
   limpieza,
   iluminacion,
   senales,
+  aguaAlcantarillado,
+  ruido,
+  animalesPlagas,
+  transportePublico,
+  accesibilidad,
+  obrasAndamios,
+  contenedores,
+  grafitisVandalismo,
+  aparcamientoSemaforos,
+  contaminacion,
+  seguridadCiudadana,
+  playasCosta,
   otros,
 }
 
@@ -32,6 +45,18 @@ extension ComplaintCategoryX on ComplaintCategory {
         ComplaintCategory.limpieza => 'limpieza',
         ComplaintCategory.iluminacion => 'iluminacion',
         ComplaintCategory.senales => 'senales',
+        ComplaintCategory.aguaAlcantarillado => 'agua_alcantarillado',
+        ComplaintCategory.ruido => 'ruido',
+        ComplaintCategory.animalesPlagas => 'animales_plagas',
+        ComplaintCategory.transportePublico => 'transporte_publico',
+        ComplaintCategory.accesibilidad => 'accesibilidad',
+        ComplaintCategory.obrasAndamios => 'obras_andamios',
+        ComplaintCategory.contenedores => 'contenedores',
+        ComplaintCategory.grafitisVandalismo => 'grafitis_vandalismo',
+        ComplaintCategory.aparcamientoSemaforos => 'aparcamiento_semaforos',
+        ComplaintCategory.contaminacion => 'contaminacion',
+        ComplaintCategory.seguridadCiudadana => 'seguridad_ciudadana',
+        ComplaintCategory.playasCosta => 'playas_costa',
         ComplaintCategory.otros => 'otros',
       };
 
@@ -42,6 +67,18 @@ extension ComplaintCategoryX on ComplaintCategory {
         'limpieza' => ComplaintCategory.limpieza,
         'iluminacion' => ComplaintCategory.iluminacion,
         'senales' => ComplaintCategory.senales,
+        'agua_alcantarillado' => ComplaintCategory.aguaAlcantarillado,
+        'ruido' => ComplaintCategory.ruido,
+        'animales_plagas' => ComplaintCategory.animalesPlagas,
+        'transporte_publico' => ComplaintCategory.transportePublico,
+        'accesibilidad' => ComplaintCategory.accesibilidad,
+        'obras_andamios' => ComplaintCategory.obrasAndamios,
+        'contenedores' => ComplaintCategory.contenedores,
+        'grafitis_vandalismo' => ComplaintCategory.grafitisVandalismo,
+        'aparcamiento_semaforos' => ComplaintCategory.aparcamientoSemaforos,
+        'contaminacion' => ComplaintCategory.contaminacion,
+        'seguridad_ciudadana' => ComplaintCategory.seguridadCiudadana,
+        'playas_costa' => ComplaintCategory.playasCosta,
         _ => ComplaintCategory.otros,
       };
 }
@@ -87,6 +124,20 @@ extension ReputationLevelX on ReputationLevel {
       };
 }
 
+extension UserRoleX on UserRole {
+  String get apiValue => switch (this) {
+        UserRole.user => 'user',
+        UserRole.admin => 'admin',
+        UserRole.superAdmin => 'super_admin',
+      };
+
+  static UserRole fromApi(String? v) => switch (v) {
+        'admin' => UserRole.admin,
+        'super_admin' => UserRole.superAdmin,
+        _ => UserRole.user,
+      };
+}
+
 class GeoPosition {
   const GeoPosition({required this.lat, required this.lng, this.accuracy});
   final double lat;
@@ -100,7 +151,9 @@ class Profile {
   const Profile({
     required this.id,
     required this.nickname,
+    this.email,
     this.role = UserRole.user,
+    this.banned = false,
     this.reputationPoints = 0,
     this.reputationLevel = ReputationLevel.novato,
     this.avatarUrl,
@@ -110,7 +163,9 @@ class Profile {
 
   final String id;
   final String nickname;
+  final String? email;
   final UserRole role;
+  final bool banned;
   final int reputationPoints;
   final ReputationLevel reputationLevel;
   final String? avatarUrl;
@@ -120,7 +175,9 @@ class Profile {
   factory Profile.fromJson(Map<String, dynamic> j) => Profile(
         id: j['id'] as String,
         nickname: j['nickname'] as String,
-        role: (j['role'] as String?) == 'admin' ? UserRole.admin : UserRole.user,
+        email: j['email'] as String?,
+        role: UserRoleX.fromApi(j['role'] as String?),
+        banned: j['banned'] as bool? ?? false,
         reputationPoints: (j['reputation_points'] as num?)?.toInt() ?? 0,
         reputationLevel: ReputationLevelX.fromLabel(
           j['reputation_level'] as String? ?? 'Novato',
@@ -135,11 +192,14 @@ class Profile {
     int? reputationPoints,
     ReputationLevel? reputationLevel,
     bool? pushEnabled,
+    bool? banned,
   }) =>
       Profile(
         id: id,
         nickname: nickname ?? this.nickname,
+        email: email,
         role: role,
+        banned: banned ?? this.banned,
         reputationPoints: reputationPoints ?? this.reputationPoints,
         reputationLevel: reputationLevel ?? this.reputationLevel,
         avatarUrl: avatarUrl,

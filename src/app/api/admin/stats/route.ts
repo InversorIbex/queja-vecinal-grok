@@ -1,23 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
-import { listComplaints } from "@/lib/complaints-store";
+import { authorizeAdmin } from "@/lib/admin-auth";
+import { listComplaints, listProfiles } from "@/lib/complaints-store";
 import { DEMO_RANKINGS } from "@/lib/demo-data";
 
-function isAdmin(req: NextRequest): boolean {
-  const expected = process.env.ADMIN_SECRET ?? "demo-admin";
-  return req.headers.get("x-admin-secret") === expected;
-}
-
 export async function GET(req: NextRequest) {
-  if (!isAdmin(req)) {
+  const auth = authorizeAdmin(req);
+  if (!auth.ok) {
     return NextResponse.json({ error: "No autorizado" }, { status: 401 });
   }
-  const all = await listComplaints();
+  const [all, profiles] = await Promise.all([
+    listComplaints(),
+    listProfiles(),
+  ]);
   const stats = {
     total: all.length,
     pending: all.filter((c) => c.status === "pending").length,
     approved: all.filter((c) => c.status === "approved").length,
     resolved: all.filter((c) => c.status === "resolved").length,
     rejected: all.filter((c) => c.status === "rejected").length,
+    withPhotos: all.filter((c) => c.photos.length > 0).length,
+    bannedUsers: profiles.filter((p) => p.banned).length,
     byCategory: Object.fromEntries(
       [...new Set(all.map((c) => c.category))].map((cat) => [
         cat,
@@ -26,5 +28,5 @@ export async function GET(req: NextRequest) {
     ),
     topNeighbors: DEMO_RANKINGS.slice(0, 5),
   };
-  return NextResponse.json({ stats });
+  return NextResponse.json({ stats, isSuperAdmin: auth.isSuperAdmin });
 }

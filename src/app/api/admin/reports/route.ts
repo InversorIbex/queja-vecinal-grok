@@ -1,20 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
+import { authorizeAdmin } from "@/lib/admin-auth";
 import { demoStore } from "@/lib/demo-data";
 
-function isAdmin(req: NextRequest): boolean {
-  const expected = process.env.ADMIN_SECRET ?? "demo-admin";
-  return req.headers.get("x-admin-secret") === expected;
-}
-
 export async function GET(req: NextRequest) {
-  if (!isAdmin(req)) {
+  const auth = authorizeAdmin(req);
+  if (!auth.ok) {
     return NextResponse.json({ error: "No autorizado" }, { status: 401 });
   }
   return NextResponse.json({ reports: demoStore.reports });
 }
 
 export async function PATCH(req: NextRequest) {
-  if (!isAdmin(req)) {
+  const auth = authorizeAdmin(req);
+  if (!auth.ok) {
     return NextResponse.json({ error: "No autorizado" }, { status: 401 });
   }
   const { id, status } = await req.json();

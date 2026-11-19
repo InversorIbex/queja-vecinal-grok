@@ -1,6 +1,60 @@
-import type { Comment, Complaint, RankingEntry, Report, Vote } from "@/types";
+import type {
+  Comment,
+  Complaint,
+  Profile,
+  RankingEntry,
+  Report,
+  Vote,
+} from "@/types";
 
 const now = Date.now();
+
+export const DEMO_PROFILES: Profile[] = [
+  {
+    id: "prof-super",
+    nickname: "Ence_Admin",
+    email: "ence@example.com",
+    role: "super_admin",
+    banned: false,
+    reputation_points: 500,
+    reputation_level: "Experto Vecinal",
+    push_enabled: false,
+    created_at: new Date(now - 86400000 * 90).toISOString(),
+  },
+  {
+    id: "prof-1",
+    nickname: "Vecino_4821",
+    email: null,
+    role: "user",
+    banned: false,
+    reputation_points: 320,
+    reputation_level: "Referente",
+    push_enabled: true,
+    created_at: new Date(now - 86400000 * 40).toISOString(),
+  },
+  {
+    id: "prof-2",
+    nickname: "Vecino_7733",
+    email: null,
+    role: "user",
+    banned: false,
+    reputation_points: 210,
+    reputation_level: "Vigilante",
+    push_enabled: false,
+    created_at: new Date(now - 86400000 * 30).toISOString(),
+  },
+  {
+    id: "prof-banned",
+    nickname: "Vecino_0001",
+    email: "banned@example.com",
+    role: "user",
+    banned: true,
+    reputation_points: 5,
+    reputation_level: "Novato",
+    push_enabled: false,
+    created_at: new Date(now - 86400000 * 10).toISOString(),
+  },
+];
 
 export const DEMO_COMPLAINTS: Complaint[] = [
   {
@@ -90,13 +144,55 @@ export const DEMO_COMPLAINTS: Complaint[] = [
     status: "pending",
     lat: 40.408,
     lng: -3.692,
-    photos: [],
+    photos: [
+      "https://placehold.co/800x600/b91c1c/ffffff?text=Senal+demo",
+    ],
     votes_real: 0,
     votes_fake: 0,
     votes_resolved: 0,
     comments_count: 0,
     created_at: new Date(now - 3600000 * 6).toISOString(),
     updated_at: new Date(now - 3600000 * 6).toISOString(),
+  },
+  {
+    id: "demo-7",
+    anonymous_nickname: "Vecino_4821",
+    title: "Fuga de agua en la acera",
+    description:
+      "Sale agua continuamente de una tapa de alcantarilla; el pavimento está resbaladizo.",
+    category: "agua_alcantarillado",
+    admin_level: "ayuntamiento",
+    status: "pending",
+    lat: 40.418,
+    lng: -3.698,
+    photos: [
+      "https://placehold.co/800x600/0e7490/ffffff?text=Agua+demo",
+    ],
+    votes_real: 0,
+    votes_fake: 0,
+    votes_resolved: 0,
+    comments_count: 1,
+    created_at: new Date(now - 3600000 * 3).toISOString(),
+    updated_at: new Date(now - 3600000 * 3).toISOString(),
+  },
+  {
+    id: "demo-8",
+    anonymous_nickname: "Vecino_1190",
+    title: "Ruido excesivo de obras nocturnas",
+    description:
+      "Martillos neumáticos después de las 23:00 varios días seguidos. Imposible dormir.",
+    category: "ruido",
+    admin_level: "ayuntamiento",
+    status: "pending",
+    lat: 40.414,
+    lng: -3.706,
+    photos: [],
+    votes_real: 0,
+    votes_fake: 0,
+    votes_resolved: 0,
+    comments_count: 0,
+    created_at: new Date(now - 3600000 * 1).toISOString(),
+    updated_at: new Date(now - 3600000 * 1).toISOString(),
   },
   {
     id: "demo-6",
@@ -146,6 +242,16 @@ export const DEMO_COMMENTS: Record<string, Comment[]> = {
       body: "Zona muy transitada, prioridad alta.",
       distance_m: 210,
       created_at: new Date(now - 86400000 * 3).toISOString(),
+    },
+  ],
+  "demo-7": [
+    {
+      id: "c4",
+      complaint_id: "demo-7",
+      author_nickname: "Vecino_0001",
+      body: "Comentario ofensivo de prueba — el SUPER_ADMIN puede borrarlo.",
+      distance_m: 150,
+      created_at: new Date(now - 3600000 * 2).toISOString(),
     },
   ],
 };
@@ -199,7 +305,8 @@ export const DEMO_RANKINGS: RankingEntry[] = [
 /** In-memory mutable store for demo mode (server process). */
 export const demoStore = {
   complaints: [...DEMO_COMPLAINTS] as Complaint[],
-  comments: { ...DEMO_COMMENTS } as Record<string, Comment[]>,
+  comments: structuredClone(DEMO_COMMENTS) as Record<string, Comment[]>,
   votes: [...DEMO_VOTES] as Vote[],
   reports: [...DEMO_REPORTS] as Report[],
+  profiles: [...DEMO_PROFILES] as Profile[],
 };

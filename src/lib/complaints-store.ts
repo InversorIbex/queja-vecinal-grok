@@ -1,5 +1,6 @@
 import { demoStore } from "@/lib/demo-data";
 import { assertWithin10km } from "@/lib/geo";
+import { destroyImageByUrl } from "@/lib/cloudinary";
 import { createServiceClient } from "@/lib/supabase/server";
 import { isDemoMode } from "@/lib/utils";
 import type {
@@ -8,6 +9,7 @@ import type {
   Complaint,
   ComplaintCategory,
   ComplaintStatus,
+  Profile,
   VoteType,
 } from "@/types";
 import { randomUUID } from "crypto";
@@ -267,4 +269,178 @@ export async function addComment(input: {
     .single();
   if (error) throw error;
   return { ok: true, comment: data as Comment };
+}
+
+export async function deleteComment(commentId: string): Promise<boolean> {
+  if (isDemoMode() || !createServiceClient()) {
+    for (const [cid, list] of Object.entries(demoStore.comments)) {
+      const i = list.findIndex((c) => c.id === commentId);
+      if (i >= 0) {
+        list.splice(i, 1);
+        const complaint = demoStore.complaints.find((c) => c.id === cid);
+        if (complaint) {
+          complaint.comments_count = Math.max(0, complaint.comments_count - 1);
+        }
+        return true;
+      }
+    }
+    return false;
+  }
+  const sb = createServiceClient()!;
+  const { error } = await sb.from("comments").delete().eq("id", commentId);
+  if (error) throw error;
+  return true;
+}
+
+export async function removeComplaintPhoto(
+  complaintId: string,
+  photoUrl: string
+): Promise<Complaint | null> {
+  const complaint = await getComplaint(complaintId);
+  if (!complaint) return null;
+  const next = complaint.photos.filter((p) => p !== photoUrl);
+  if (next.length === complaint.photos.length) return complaint;
+
+  void destroyImageByUrl(photoUrl);
+
+  if (isDemoMode() || !createServiceClient()) {
+    complaint.photos = next;
+    complaint.updated_at = new Date().toISOString();
+    return complaint;
+  }
+
+  const sb = createServiceClient()!;
+  const { data, error } = await sb
+    .from("complaints")
+    .update({ photos: next, updated_at: new Date().toISOString() })
+    .eq("id", complaintId)
+    .select()
+    .single();
+  if (error) throw error;
+  return data as Complaint;
+}
+
+export async function listProfiles(opts?: {
+  search?: string;
+  bannedOnly?: boolean;
+}): Promise<Profile[]> {
+  if (isDemoMode() || !createServiceClient()) {
+    let list = [...demoStore.profiles];
+    if (opts?.bannedOnly) list = list.filter((p) => p.banned);
+    if (opts?.search) {
+      const q = opts.search.toLowerCase();
+      list = list.filter(
+        (p) =>
+          p.nickname.toLowerCase().includes(q) ||
+          (p.email?.toLowerCase().includes(q) ?? false)
+      );
+    }
+    return list;
+  }
+
+  const sb = createServiceClient()!;
+  let q = sb.from("profiles").select("*").order("created_at", { ascending: false });
+  if (opts?.bannedOnly) q = q.eq("banned", true);
+  if (opts?.search) {
+    q = q.or(
+      `nickname.ilike.%${opts.search}%,email.ilike.%${opts.search}%`
+    );
+  }
+  const { data, error } = await q.limit(100);
+  if (error) throw error;
+  return (data ?? []).map((row) => ({
+    ...(row as Profile),
+    banned: Boolean((row as Profile).banned),
+  }));
+}
+
+export async function setUserBanned(
+  profileId: string,
+  banned: boolean
+): Promise<Profile | null> {
+  if (isDemoMode() || !createServiceClient()) {
+    const p = demoStore.profiles.find((x) => x.id === profileId);
+    if (!p) return null;
+    p.banned = banned;
+    return p;
+  }
+  const sb = createServiceClient()!;
+  const { data, error } = await sb
+    .from("profiles")
+    .update({ banned, updated_at: new Date().toISOString() })
+    .eq("id", profileId)
+    .select()
+    .single();
+  if (error) throw error;
+  return data as Profile;
+}
+
+export async function isNicknameBanned(nickname: string): Promise<boolean> {
+  if (isDemoMode() || !createServiceClient()) {
+    return demoStore.profiles.some(
+      (p) => p.nickname === nickname && p.banned
+    );
+  }
+  const sb = createServiceClient()!;
+  const { data } = await sb
+    .from("profiles")
+    .select("id")
+    .eq("nickname", nickname)
+    .eq("banned", true)
+    .maybeSingle();
+  return Boolean(data);
+}
+
+export async function listAllComments(opts?: {
+  search?: string;
+  limit?: number;
+}): Promise<(Comment & { complaint_title?: string })[]> {
+  if (isDemoMode() || !createServiceClient()) {
+    const rows: (Comment & { complaint_title?: string })[] = [];
+    for (const [cid, list] of Object.entries(demoStore.comments)) {
+      const title = demoStore.complaints.find((c) => c.id === cid)?.title;
+      for (const c of list) {
+        rows.push({ ...c, complaint_title: title });
+      }
+    }
+    let out = rows.sort(
+      (a, b) =>
+        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    );
+    if (opts?.search) {
+      const q = opts.search.toLowerCase();
+      out = out.filter(
+        (c) =>
+          c.body.toLowerCase().includes(q) ||
+          c.author_nickname.toLowerCase().includes(q)
+      );
+    }
+    return out.slice(0, opts?.limit ?? 100);
+  }
+
+  const sb = createServiceClient()!;
+  let q = sb
+    .from("comments")
+    .select("*, complaints(title)")
+    .order("created_at", { ascending: false })
+    .limit(opts?.limit ?? 100);
+  if (opts?.search) {
+    q = q.or(
+      `body.ilike.%${opts.search}%,author_nickname.ilike.%${opts.search}%`
+    );
+  }
+  const { data, error } = await q;
+  if (error) throw error;
+  return (data ?? []).map((row) => {
+    const r = row as Comment & { complaints?: { title?: string } | null };
+    return {
+      id: r.id,
+      complaint_id: r.complaint_id,
+      author_nickname: r.author_nickname,
+      body: r.body,
+      distance_m: r.distance_m,
+      created_at: r.created_at,
+      complaint_title: r.complaints?.title,
+    };
+  });
 }

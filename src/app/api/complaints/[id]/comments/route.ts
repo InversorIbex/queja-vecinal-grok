@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { addComment, listComments } from "@/lib/complaints-store";
+import {
+  addComment,
+  isNicknameBanned,
+  listComments,
+} from "@/lib/complaints-store";
 import { rateLimit } from "@/lib/rate-limit";
 
 type Ctx = { params: Promise<{ id: string }> };
@@ -34,6 +38,13 @@ export async function POST(req: NextRequest, ctx: Ctx) {
     const parsed = schema.safeParse(body);
     if (!parsed.success) {
       return NextResponse.json({ error: "Datos inválidos" }, { status: 400 });
+    }
+
+    if (await isNicknameBanned(parsed.data.author_nickname)) {
+      return NextResponse.json(
+        { error: "Tu cuenta está bloqueada. No puedes comentar." },
+        { status: 403 }
+      );
     }
 
     const result = await addComment({
