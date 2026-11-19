@@ -9,6 +9,7 @@ const int maxPhotoBytes = 800 * 1024;
 /// Madrid centro — fallback demo si no hay geolocalización.
 const GeoPosition demoCenter = GeoPosition(lat: 40.4168, lng: -3.7038);
 
+/// Misma lista que web `CATEGORIES` (labels en español).
 const Map<ComplaintCategory, CategoryMeta> categories = {
   ComplaintCategory.bachesCarreteras: CategoryMeta(
     label: 'Baches y carreteras',
@@ -33,6 +34,54 @@ const Map<ComplaintCategory, CategoryMeta> categories = {
   ComplaintCategory.senales: CategoryMeta(
     label: 'Señales',
     color: 0xFFB91C1C,
+  ),
+  ComplaintCategory.aguaAlcantarillado: CategoryMeta(
+    label: 'Agua y alcantarillado',
+    color: 0xFF0E7490,
+  ),
+  ComplaintCategory.ruido: CategoryMeta(
+    label: 'Ruido',
+    color: 0xFF7C2D12,
+  ),
+  ComplaintCategory.animalesPlagas: CategoryMeta(
+    label: 'Animales / plagas',
+    color: 0xFF4D7C0F,
+  ),
+  ComplaintCategory.transportePublico: CategoryMeta(
+    label: 'Transporte público',
+    color: 0xFF1D4ED8,
+  ),
+  ComplaintCategory.accesibilidad: CategoryMeta(
+    label: 'Accesibilidad',
+    color: 0xFF7E22CE,
+  ),
+  ComplaintCategory.obrasAndamios: CategoryMeta(
+    label: 'Obras y andamios',
+    color: 0xFFB45309,
+  ),
+  ComplaintCategory.contenedores: CategoryMeta(
+    label: 'Contenedores',
+    color: 0xFF3F6212,
+  ),
+  ComplaintCategory.grafitisVandalismo: CategoryMeta(
+    label: 'Grafitis / vandalismo',
+    color: 0xFF9F1239,
+  ),
+  ComplaintCategory.aparcamientoSemaforos: CategoryMeta(
+    label: 'Aparcamiento / semáforos',
+    color: 0xFFC2410C,
+  ),
+  ComplaintCategory.contaminacion: CategoryMeta(
+    label: 'Contaminación',
+    color: 0xFF57534E,
+  ),
+  ComplaintCategory.seguridadCiudadana: CategoryMeta(
+    label: 'Seguridad ciudadana',
+    color: 0xFF1E3A8A,
+  ),
+  ComplaintCategory.playasCosta: CategoryMeta(
+    label: 'Playas / costa',
+    color: 0xFF0891B2,
   ),
   ComplaintCategory.otros: CategoryMeta(
     label: 'Otros',

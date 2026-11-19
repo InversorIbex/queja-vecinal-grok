@@ -74,7 +74,7 @@ npm install
 npm run dev
 ```
 
-Abre [http://localhost:3000](http://localhost:3000). Sin secretos → **modo demo**. Admin: `/admin` con secreto `demo-admin`.
+Abre [http://localhost:3000](http://localhost:3000). Sin secretos → **modo demo**. Moderación: `/admin` con secreto `demo-admin` (en demo actúa como SUPER_ADMIN).
 
 ## Reglas de negocio
 
@@ -82,8 +82,9 @@ Abre [http://localhost:3000](http://localhost:3000). Sin secretos → **modo dem
 - Distancia máxima **10 km** (Haversine en cliente + PostGIS/`within_10km` en servidor).
 - Quejas nuevas en `pending` hasta moderación.
 - Nick anónimo tipo `Vecino_4821` si no hay sesión.
-- Categorías: Baches y carreteras, Mobiliario urbano, Parques y jardines, Limpieza, Iluminación, Señales, Otros.
+- Categorías (web + Flutter sincronizadas): Baches, Mobiliario, Parques, Limpieza, Iluminación, Señales, Agua/alcantarillado, Ruido, Animales/plagas, Transporte, Accesibilidad, Obras, Contenedores, Grafitis, Aparcamiento/semáforos, Contaminación, Seguridad, Playas/costa, Otros.
 - Destinos: Ayuntamiento / Provincia / Comunidad / Estado.
+- Moderación: rol `super_admin` (panel `/admin`) — aprobar/rechazar, quitar fotos, borrar comentarios, banear.
 
 ## Stack
 
@@ -98,13 +99,38 @@ Abre [http://localhost:3000](http://localhost:3000). Sin secretos → **modo dem
 
 Ver [`supabase/README.md`](supabase/README.md). Sin service role en CI no hay `db push` automático.
 
-1. SQL Editor → `supabase/migrations/001_init.sql` (y opcional `002_seed_demo.sql`).
+1. SQL Editor → `001_init.sql`, opcional `002_seed_demo.sql`, luego `003_categories_super_admin.sql` (categorías + `super_admin` + `banned`).
 2. O CLI: `npx supabase link --project-ref sxvuovnetndhtfrtgenc` luego `npx supabase db push`.
 3. Auth: Anonymous + Email + Google (opcional). Realtime en `complaints`, `votes`, `comments`.
 
-## Cloudinary / Web Push
+## Cloudinary (fotos gratis)
 
-Ver `.env.example`. Sin claves → stubs / placeholders con aviso en UI.
+Free tier con **unsigned upload preset** (recomendado):
+
+1. Cuenta en [cloudinary.com](https://cloudinary.com) → Settings → Upload → **Add upload preset** (Signing mode: **Unsigned**).
+2. En `.env.local` / Cursor Secrets: `CLOUDINARY_CLOUD_NAME` + `CLOUDINARY_UPLOAD_PRESET`.
+3. Opcional server-side (borrar fotos): `CLOUDINARY_API_KEY` + `CLOUDINARY_API_SECRET`.
+4. Flutter: mismas vars en `mobile/assets/env/.env`.
+
+Sin claves → compresión cliente + data URL / placeholder (aviso en UI). Nunca commits claves.
+
+## SUPER_ADMIN
+
+1. Define `ADMIN_SECRET` (panel `/admin`) y opcionalmente `SUPER_ADMIN_EMAIL`.
+2. Aplica `supabase/migrations/003_categories_super_admin.sql`.
+3. Tras crear tu usuario en Auth:
+
+```sql
+SELECT public.promote_super_admin_by_email('tu@email.com');
+```
+
+4. En `/admin`, entra con el secreto y el mismo email. Acciones elevadas: quitar fotos, borrar comentarios, banear (`profiles.banned`).
+
+Sin `SUPER_ADMIN_EMAIL` (demo local), el secreto admin tiene permisos de super_admin.
+
+## Web Push
+
+Ver `.env.example`. Sin claves → stubs.
 
 ## Scripts (web)
 

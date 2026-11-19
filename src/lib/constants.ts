@@ -20,6 +20,18 @@ export const CATEGORIES: Record<
   limpieza: { label: "Limpieza", color: "#a16207" },
   iluminacion: { label: "Iluminación", color: "#ca8a04" },
   senales: { label: "Señales", color: "#b91c1c" },
+  agua_alcantarillado: { label: "Agua y alcantarillado", color: "#0e7490" },
+  ruido: { label: "Ruido", color: "#7c2d12" },
+  animales_plagas: { label: "Animales / plagas", color: "#4d7c0f" },
+  transporte_publico: { label: "Transporte público", color: "#1d4ed8" },
+  accesibilidad: { label: "Accesibilidad", color: "#7e22ce" },
+  obras_andamios: { label: "Obras y andamios", color: "#b45309" },
+  contenedores: { label: "Contenedores", color: "#3f6212" },
+  grafitis_vandalismo: { label: "Grafitis / vandalismo", color: "#9f1239" },
+  aparcamiento_semaforos: { label: "Aparcamiento / semáforos", color: "#c2410c" },
+  contaminacion: { label: "Contaminación", color: "#57534e" },
+  seguridad_ciudadana: { label: "Seguridad ciudadana", color: "#1e3a8a" },
+  playas_costa: { label: "Playas / costa", color: "#0891b2" },
   otros: { label: "Otros", color: "#475569" },
 };
 
@@ -35,6 +47,12 @@ export const STATUS_LABELS = {
   approved: "Aprobada",
   rejected: "Rechazada",
   resolved: "Resuelta",
+} as const;
+
+export const ROLE_LABELS = {
+  user: "Usuario",
+  admin: "Admin",
+  super_admin: "Super admin",
 } as const;
 
 export const REPUTATION_THRESHOLDS: {

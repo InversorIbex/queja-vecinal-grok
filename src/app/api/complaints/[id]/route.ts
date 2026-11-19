@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { authorizeAdmin } from "@/lib/admin-auth";
 import {
   deleteComplaint,
   getComplaint,
@@ -31,12 +32,6 @@ const patchSchema = z.object({
   adminToken: z.string().optional(),
 });
 
-function isAdminAuthorized(req: NextRequest, bodyToken?: string): boolean {
-  const expected = process.env.ADMIN_SECRET ?? "demo-admin";
-  const header = req.headers.get("x-admin-secret");
-  return header === expected || bodyToken === expected;
-}
-
 export async function PATCH(req: NextRequest, ctx: Ctx) {
   const { id } = await ctx.params;
   try {
@@ -45,7 +40,8 @@ export async function PATCH(req: NextRequest, ctx: Ctx) {
     if (!parsed.success) {
       return NextResponse.json({ error: "Datos inválidos" }, { status: 400 });
     }
-    if (!isAdminAuthorized(req, parsed.data.adminToken)) {
+    const auth = authorizeAdmin(req, parsed.data.adminToken);
+    if (!auth.ok) {
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
     if (parsed.data.status) {
@@ -64,7 +60,8 @@ export async function PATCH(req: NextRequest, ctx: Ctx) {
 
 export async function DELETE(req: NextRequest, ctx: Ctx) {
   const { id } = await ctx.params;
-  if (!isAdminAuthorized(req)) {
+  const auth = authorizeAdmin(req);
+  if (!auth.ok) {
     return NextResponse.json({ error: "No autorizado" }, { status: 401 });
   }
   const ok = await deleteComplaint(id);
