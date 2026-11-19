@@ -17,10 +17,15 @@ class Env {
   static bool get fcmEnabled =>
       (dotenv.env['FCM_ENABLED'] ?? 'false').toLowerCase() == 'true';
 
-  static bool get isDemoMode =>
-      supabaseUrl.isEmpty ||
-      supabaseAnonKey.isEmpty ||
-      supabaseUrl.contains('YOUR_PROJECT');
+  static bool get isDemoMode {
+    if (supabaseUrl.isEmpty || supabaseAnonKey.isEmpty) return true;
+    if (supabaseUrl.contains('YOUR_PROJECT')) return true;
+    if (supabaseAnonKey == 'your_anon_key' ||
+        supabaseAnonKey == 'your_publishable_or_anon_key') {
+      return true;
+    }
+    return false;
+  }
 
   static bool get hasCloudinary =>
       cloudinaryCloudName.isNotEmpty && cloudinaryUploadPreset.isNotEmpty;
