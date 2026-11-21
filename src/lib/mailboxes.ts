@@ -11,7 +11,7 @@ export interface SavedMailbox {
   email: string;
 }
 
-function useMemory(): boolean {
+function memoryStore(): boolean {
   return isDemoMode() || !createServiceClient();
 }
 
@@ -38,7 +38,7 @@ export async function getSavedMailbox(key: string): Promise<SavedMailbox | null>
       return null;
     }
   }
-  if (useMemory()) {
+  if (memoryStore()) {
     return demoStore.mailboxes.find((m) => m.key === key) ?? null;
   }
   try {
@@ -86,7 +86,7 @@ export async function saveMailbox(input: SavedMailbox): Promise<boolean> {
     }
   }
 
-  if (useMemory()) {
+  if (memoryStore()) {
     const i = demoStore.mailboxes.findIndex((m) => m.key === row.key);
     if (i >= 0) demoStore.mailboxes[i] = row;
     else demoStore.mailboxes.push(row);

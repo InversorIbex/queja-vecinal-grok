@@ -15,7 +15,8 @@ export async function GET(_req: NextRequest, ctx: Ctx) {
       );
     }
     const events = await listEvents(complaint.id);
-    const { reporter_email: _hidden, ...publicComplaint } = complaint;
+    const publicComplaint = { ...complaint };
+    delete publicComplaint.reporter_email;
     return NextResponse.json({ complaint: publicComplaint, events });
   } catch (e) {
     console.error(e);
