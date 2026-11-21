@@ -113,7 +113,10 @@ export default function PrivacidadPage() {
         de respuesta y los avisos son opcionales. Puedes dejar de usar el servicio cuando quieras.
       </p>
 
-      <p>
+      <p className="flex flex-wrap gap-4">
+        <Link href="/estandares-seguridad" className="font-semibold text-sky-700">
+          Estándares de seguridad infantil
+        </Link>
         <Link href="/" className="font-semibold text-sky-700">
           Volver al mapa
         </Link>

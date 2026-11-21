@@ -114,9 +114,12 @@ export default function PerfilPage() {
         </CardContent>
       </Card>
 
-      <p className="text-center text-sm">
+      <p className="flex flex-wrap justify-center gap-4 text-center text-sm">
         <Link href="/privacidad" className="font-semibold text-sky-700">
           Política de privacidad
+        </Link>
+        <Link href="/estandares-seguridad" className="font-semibold text-sky-700">
+          Estándares de seguridad infantil
         </Link>
       </p>
     </div>
