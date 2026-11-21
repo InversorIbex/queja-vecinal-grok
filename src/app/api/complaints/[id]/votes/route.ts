@@ -42,7 +42,7 @@ export async function POST(req: NextRequest, ctx: Ctx) {
     return NextResponse.json({
       ok: true,
       distance_m: result.distance_m,
-      message: "Voto registrado. Solo vecinos a ≤10 km pueden votar.",
+      message: "Registrado. Para decir si sigue o está arreglada hay que estar a 1 km.",
     });
   } catch (e) {
     console.error(e);

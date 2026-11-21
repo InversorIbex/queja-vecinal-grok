@@ -2,10 +2,8 @@ import type { AdminLevel, ComplaintCategory, ReputationLevel } from "@/types";
 
 export const APP_NAME = "QuejasVecinales";
 export const APP_TAGLINE = "Tu barrio, tu voz";
-/** Votar y comentar: hay que estar cerca del punto de la queja. */
-export const MAX_DISTANCE_M = 10_000;
-/** Publicar: el punto puede estar donde lo viste, dentro de este radio de donde estás ahora. */
-export const REPORT_RADIUS_M = 20_000;
+/** Comprobar en el sitio si la queja sigue o ya está arreglada. */
+export const MAX_DISTANCE_M = 1_000;
 export const MAX_PHOTOS = 4;
 export const MAX_PHOTO_BYTES = 800 * 1024;
 

@@ -19,8 +19,8 @@ Manifest con `"orientation": "any"`. No es un layout móvil estirado: ≥1024 
 ## Reglas de negocio
 
 - Geolocalización obligatoria al **crear**, **votar** y **comentar**.
-- Publicar: el punto de la queja puede estar hasta **20 km** de donde estás ahora (lo que viste durante el día, al llegar a casa).
-- Votar y comentar: sigues teniendo que estar a **≤10 km** del punto.
+- Publicar: el punto puede estar en cualquier sitio de tierra. Sirve si alguien que no usa el móvil se lo cuenta a un familiar.
+- Comprobar si sigue o ya está arreglada: hay que estar a **1 km** del punto. Comentar se puede desde cualquier sitio.
 - Quejas nuevas en `pending` hasta moderación.
 - Nick anónimo tipo `Vecino_4821` si no hay sesión.
 - Categorías de calle, diputación, comunidad y Estado, más «Otra cosa».

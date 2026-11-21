@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { Filter, Flame, Layers, MapPin } from "lucide-react";
+import { ChevronDown, ChevronUp, Filter, Flame, Layers, MapPin } from "lucide-react";
 import { CATEGORIES, DEMO_CENTER, categoryMeta } from "@/lib/constants";
 import type { Complaint, ComplaintCategory } from "@/types";
 import { useGeolocation } from "@/hooks/use-geolocation";
@@ -30,7 +30,25 @@ export function PublicMap() {
   const [layer, setLayer] = useState<LayerKey>("none");
   const [selected, setSelected] = useState<Complaint | null>(null);
   const [layerName, setLayerName] = useState<string | null>(null);
+  const [listOpen, setListOpen] = useState(false);
   const { position, usingDemo, refresh } = useGeolocation();
+
+  useEffect(() => {
+    const saved = window.localStorage.getItem("qv_complaints_open");
+    if (saved === "0" || saved === "1") {
+      setListOpen(saved === "1");
+      return;
+    }
+    setListOpen(window.matchMedia("(min-width: 1024px)").matches);
+  }, []);
+
+  function toggleList() {
+    setListOpen((current) => {
+      const next = !current;
+      window.localStorage.setItem("qv_complaints_open", next ? "1" : "0");
+      return next;
+    });
+  }
 
   const load = useCallback(async () => {
     const qs =
@@ -130,23 +148,40 @@ export function PublicMap() {
       {/* Panel lateral en desktop / lista en mobile portrait */}
       <aside
         className={cn(
-          "absolute inset-x-0 bottom-0 z-[400] flex max-h-[42%] flex-col rounded-t-3xl border-t border-slate-200 bg-white/95 shadow-2xl backdrop-blur dark:border-slate-800 dark:bg-slate-950/95",
-          "lg:static lg:z-auto lg:h-full lg:max-h-none lg:w-96 lg:shrink-0 lg:rounded-none lg:border-l lg:border-t-0 lg:shadow-none"
+          "z-[400] flex flex-col border border-slate-200 bg-white/95 backdrop-blur dark:border-slate-800 dark:bg-slate-950/95",
+          listOpen
+            ? "absolute inset-x-0 bottom-0 max-h-[42%] rounded-t-3xl border-x-0 border-b-0 shadow-2xl lg:static lg:h-full lg:max-h-none lg:w-96 lg:shrink-0 lg:rounded-none lg:border-y-0 lg:border-l lg:shadow-none"
+            : "absolute bottom-3 left-3 right-20 rounded-2xl shadow-lg lg:left-auto lg:w-80"
         )}
       >
-        <div className="flex items-center justify-between gap-2 border-b border-slate-100 px-4 py-3 dark:border-slate-800">
-          <div>
+        <div className="flex items-center justify-between gap-2 px-3 py-2.5">
+          <div className="min-w-0">
             <h2 className="font-display text-base font-semibold">Quejas del barrio</h2>
             <p className="text-xs text-slate-500">{filtered.length} visibles en el mapa</p>
           </div>
-          <Link
-            href="/quejas/nueva"
-            className="shrink-0 rounded-full bg-orange-500 px-3 py-1.5 text-xs font-semibold text-white"
-          >
-            Contar lo que pasa
-          </Link>
+          <div className="flex shrink-0 items-center gap-1">
+            {listOpen && (
+              <Link
+                href="/quejas/nueva"
+                className="rounded-full bg-orange-500 px-3 py-1.5 text-xs font-semibold text-white"
+              >
+                Contar lo que pasa
+              </Link>
+            )}
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={toggleList}
+              aria-expanded={listOpen}
+              className="text-xs"
+            >
+              {listOpen ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronUp className="h-3.5 w-3.5" />}
+              {listOpen ? "Ocultar" : "Ver"}
+            </Button>
+          </div>
         </div>
-        <ul className="flex-1 space-y-2 overflow-y-auto p-3">
+        {listOpen && (
+        <ul className="flex-1 space-y-2 overflow-y-auto border-t border-slate-100 p-3 dark:border-slate-800">
           {(selected ? [selected, ...filtered.filter((c) => c.id !== selected.id)] : filtered)
             .slice(0, 40)
             .map((c) => (
@@ -186,6 +221,7 @@ export function PublicMap() {
               </li>
             ))}
         </ul>
+        )}
       </aside>
     </div>
   );

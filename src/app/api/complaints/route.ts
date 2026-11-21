@@ -3,7 +3,6 @@ import { z } from "zod";
 import { createComplaint, listComplaints } from "@/lib/complaints-store";
 import { rateLimit } from "@/lib/rate-limit";
 import { MAX_PHOTOS } from "@/lib/constants";
-import { assertWithinReportRadius } from "@/lib/geo";
 import { assertOnLand } from "@/lib/land";
 import { inspectTone } from "@/lib/moderation";
 import { resolveTerritory, routeComplaint } from "@/lib/territory";
@@ -19,7 +18,10 @@ const createSchema = z.object({
   lng: z.number().min(-180).max(180),
   user_lat: z.number().min(-90).max(90),
   user_lng: z.number().min(-180).max(180),
-  photos: z.array(z.string()).max(MAX_PHOTOS).default([]),
+  photos: z
+    .array(z.string().min(1))
+    .min(1, "La queja necesita al menos una foto.")
+    .max(MAX_PHOTOS),
   anonymous_nickname: z.string().min(3).max(40),
   reporter_email: z.string().max(160).optional().default(""),
 });
@@ -102,14 +104,6 @@ export async function POST(req: NextRequest) {
     );
     if (!tone.ok) {
       return NextResponse.json({ error: tone.message }, { status: 400 });
-    }
-
-    const near = assertWithinReportRadius(
-      { lat: parsed.data.user_lat, lng: parsed.data.user_lng },
-      { lat: parsed.data.lat, lng: parsed.data.lng }
-    );
-    if (!near.ok) {
-      return NextResponse.json({ error: near.message }, { status: 400 });
     }
 
     const land = await assertOnLand(parsed.data.lat, parsed.data.lng);

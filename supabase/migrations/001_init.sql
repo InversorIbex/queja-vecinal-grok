@@ -185,7 +185,7 @@ AS $$
   );
 $$;
 
--- Validar geofence 10 km
+-- Comprobar en el sitio: 1 km. El nombre de la función se mantiene.
 CREATE OR REPLACE FUNCTION public.within_10km(
   lat1 DOUBLE PRECISION,
   lng1 DOUBLE PRECISION,
@@ -195,7 +195,7 @@ CREATE OR REPLACE FUNCTION public.within_10km(
 LANGUAGE sql
 IMMUTABLE
 AS $$
-  SELECT public.distance_meters(lat1, lng1, lat2, lng2) <= 10000;
+  SELECT public.distance_meters(lat1, lng1, lat2, lng2) <= 1000;
 $$;
 
 -- Contadores de votos

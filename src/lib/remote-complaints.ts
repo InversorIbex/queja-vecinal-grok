@@ -1,5 +1,5 @@
 import { randomUUID } from "crypto";
-import { assertWithin10km } from "@/lib/geo";
+import { assertWithinVerifyRadius, haversineMeters } from "@/lib/geo";
 import { createServiceClient } from "@/lib/supabase/server";
 import { makeTrackingCode } from "@/lib/tracking";
 import { COMPLAINT_CATEGORIES } from "@/types";
@@ -432,18 +432,16 @@ export async function legacyAddComment(input: {
   if (complaint.status !== "approved" && complaint.status !== "resolved") {
     return { ok: false, message: "Los comentarios se abren cuando la queja está publicada." };
   }
-  const geo = assertWithin10km(
+  const distance_m = haversineMeters(
     { lat: input.author_lat, lng: input.author_lng },
-    { lat: complaint.lat, lng: complaint.lng },
-    "comentar"
+    { lat: complaint.lat, lng: complaint.lng }
   );
-  if (!geo.ok) return { ok: false, message: geo.message };
   const comment: Comment = {
     id: randomUUID(),
     complaint_id: input.complaint_id,
     author_nickname: input.author_nickname,
     body: input.body.trim(),
-    distance_m: geo.distance_m,
+    distance_m,
     created_at: new Date().toISOString(),
   };
   loaded.meta.comments.push(comment);
@@ -464,10 +462,9 @@ export async function legacyAddVote(input: {
   if (complaint.status !== "approved" && complaint.status !== "resolved") {
     return { ok: false, message: "Solo se puede votar quejas aprobadas o resueltas." };
   }
-  const geo = assertWithin10km(
+  const geo = assertWithinVerifyRadius(
     { lat: input.voter_lat, lng: input.voter_lng },
-    { lat: complaint.lat, lng: complaint.lng },
-    "votar"
+    { lat: complaint.lat, lng: complaint.lng }
   );
   if (!geo.ok) return { ok: false, message: geo.message };
 

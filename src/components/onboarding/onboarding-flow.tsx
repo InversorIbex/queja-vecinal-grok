@@ -11,12 +11,12 @@ const SLIDES = [
   {
     icon: MapPin,
     title: "Reporta lo que ves",
-    body: "Baches, farolas, basura… márcalo en el mapa al llegar a casa, hasta 20 km de donde estás, con fotos y sin registro.",
+    body: "Baches, farolas, basura… márcalo en el mapa, aunque te lo cuente un familiar que está lejos. Con fotos y sin registro.",
   },
   {
     icon: ShieldCheck,
-    title: "Cerca, no en todo el país",
-    body: "La queja tiene que estar a menos de 20 km de ti. Para votar o comentar hay que estar a ≤10 km del punto.",
+    title: "Comprobar, solo de cerca",
+    body: "Publicar se puede desde cualquier sitio. Decir si sigue mal o ya está arreglado exige estar a 1 km del punto.",
   },
   {
     icon: Smartphone,

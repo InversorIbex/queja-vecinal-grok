@@ -9,7 +9,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title: `Queja ${id}`,
     openGraph: {
       title: `Queja en QuejasVecinales`,
-      description: "Consulta y vota esta queja vecinal (≤10 km).",
+      description: "Consulta la queja. Para decir si sigue o está arreglada hay que estar a 1 km.",
     },
   };
 }

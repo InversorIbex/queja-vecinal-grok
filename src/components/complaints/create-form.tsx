@@ -13,7 +13,6 @@ import {
   CATEGORY_GROUPS,
   MAX_PHOTO_BYTES,
   MAX_PHOTOS,
-  REPORT_RADIUS_M,
 } from "@/lib/constants";
 import { haversineMeters, mapsUrl } from "@/lib/geo";
 import { inspectTone } from "@/lib/moderation";
@@ -92,14 +91,6 @@ export function CreateComplaintForm() {
   }, [spot, adminLevel, category]);
 
   async function placePin(lat: number, lng: number) {
-    if (!position) return;
-    const distance = haversineMeters(position, { lat, lng });
-    if (distance > REPORT_RADIUS_M) {
-      toast.error(
-        `Ese punto está a ${(distance / 1000).toFixed(1)} km. Puedes marcar lo que viste hoy, hasta ${(REPORT_RADIUS_M / 1000).toFixed(0)} km de donde estás ahora.`
-      );
-      return;
-    }
     const req = ++pinReq.current;
     setCheckingLand(true);
     try {
@@ -159,6 +150,10 @@ export function CreateComplaintForm() {
     }
     if (!tone.ok) {
       toast.error(tone.message);
+      return;
+    }
+    if (photos.length < 1) {
+      toast.error("La queja necesita al menos una foto.");
       return;
     }
     setSubmitting(true);
@@ -223,8 +218,8 @@ export function CreateComplaintForm() {
             Cuéntalo y lo llevamos a quien puede arreglarlo
           </h1>
           <p className="mt-3 max-w-xl text-sm leading-relaxed text-sky-50">
-            Sin registro. Marca en el mapa lo que viste hoy, hasta {(REPORT_RADIUS_M / 1000).toFixed(0)} km
-            de donde estás. Un administrador lo lee y, si procede, se envía a quien puede arreglarlo.
+            Sin registro. Marca el punto en el mapa, aunque te lo haya contado alguien que está lejos.
+            Un administrador lo lee y, si procede, se envía a quien puede arreglarlo.
           </p>
         </section>
 
@@ -236,20 +231,13 @@ export function CreateComplaintForm() {
               {!geoLoading && position && (
                 <div className="space-y-1">
                   <p>
-                    El círculo azul de puntos es donde puedes poner la queja ahora
-                    {usingDemo ? " (sin GPS, sale desde un ejemplo en Madrid)" : ""}. Tu sitio no se
-                    marca. El naranja es el problema: tócalo dentro, en tierra.
+                    El mapa se abre donde está el teléfono
+                    {usingDemo ? " (sin GPS, sale un ejemplo en Madrid)" : ""}. Tu sitio no se marca.
+                    Aleja y toca el problema en tierra, esté donde esté.
                     {pinDistance != null && pinDistance > 30 && (
                       <> Va a {formatDistance(pinDistance)}.</>
                     )}
                   </p>
-                  {!usingDemo && (
-                    <p>
-                      Si al marcar cerca te dice que está demasiado lejos, el ordenador no tiene GPS
-                      y está usando otra ubicación. Cámbiala en Configuración → Privacidad y
-                      seguridad → Ubicación → Ubicación predeterminada, y pulsa Actualizar ubicación.
-                    </p>
-                  )}
                 </div>
               )}
               {geoError && (
@@ -434,10 +422,10 @@ export function CreateComplaintForm() {
         </div>
 
         <div className="space-y-2">
-          <Label>Fotos (máx. {MAX_PHOTOS})</Label>
+          <Label>Foto (obligatoria, máx. {MAX_PHOTOS})</Label>
           <label className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-6 text-sm text-slate-500 hover:border-sky-400 dark:border-slate-600 dark:bg-slate-900">
             <Upload className="h-5 w-5" />
-            Una foto ayuda más que un párrafo
+            Sin una foto no se puede enviar la queja
             <input
               type="file"
               accept="image/*"
@@ -463,15 +451,15 @@ export function CreateComplaintForm() {
 
         <p className="text-xs text-slate-500">
           Se firma como <strong>{nickname}</strong>. No se publica hasta que un
-          administrador la aprueba. El punto tiene que estar en tierra y a menos de{" "}
-          {(REPORT_RADIUS_M / 1000).toFixed(0)} km de ti.
+          administrador la aprueba. El punto tiene que estar en tierra. Quien diga si
+          sigue o ya está arreglada tiene que estar a 1 km.
         </p>
 
         <Button
           type="submit"
           size="lg"
           className="w-full bg-orange-500 hover:bg-orange-600"
-          disabled={submitting || !position || !pin || !tone.ok}
+          disabled={submitting || !position || !pin || !tone.ok || photos.length < 1}
         >
           {submitting ? (
             <>
@@ -486,7 +474,7 @@ export function CreateComplaintForm() {
       <div className="order-1 min-h-[320px] overflow-hidden rounded-3xl border border-slate-200 dark:border-slate-700 lg:sticky lg:top-4 lg:order-2 lg:h-[calc(100dvh-2rem)]">
         {position ? (
           <div className="relative h-full min-h-[280px]">
-            <MiniMap center={position} pin={pin} radiusM={REPORT_RADIUS_M} onPick={placePin} />
+            <MiniMap center={position} pin={pin} onPick={placePin} />
             <p className="pointer-events-none absolute bottom-3 left-3 z-[500] rounded-full bg-white/95 px-3 py-1 text-xs font-medium text-slate-700 shadow dark:bg-slate-900/95 dark:text-slate-200">
               {checkingLand
                 ? "Comprobando que es tierra…"
@@ -495,8 +483,8 @@ export function CreateComplaintForm() {
                       .filter(Boolean)
                       .join(" · ")
                   : pin
-                    ? "Punto naranja dentro del círculo, en tierra"
-                    : "Toca dentro del círculo azul, en tierra"}
+                    ? "Punto naranja, en tierra"
+                    : "Toca el mapa, en tierra"}
             </p>
           </div>
         ) : (

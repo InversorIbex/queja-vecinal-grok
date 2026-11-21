@@ -21,7 +21,7 @@ import {
 } from "@/lib/constants";
 import { inspectTone } from "@/lib/moderation";
 import { formatDate, formatDistance, getOrCreateNickname } from "@/lib/utils";
-import { haversineMeters, mapsUrl, within10km } from "@/lib/geo";
+import { haversineMeters, mapsUrl, withinVerifyRadius } from "@/lib/geo";
 import { useGeolocation } from "@/hooks/use-geolocation";
 import { useComplaintsSync } from "@/hooks/use-sync";
 import type { Comment, Complaint, ComplaintEvent, VoteType } from "@/types";
@@ -60,8 +60,11 @@ export function ComplaintDetail({ id }: { id: string }) {
     position && complaint
       ? haversineMeters(position, { lat: complaint.lat, lng: complaint.lng })
       : null;
-  const canInteract =
-    position && complaint ? within10km(position, { lat: complaint.lat, lng: complaint.lng }) : false;
+  const canVerify =
+    position && complaint
+      ? withinVerifyRadius(position, { lat: complaint.lat, lng: complaint.lng })
+      : false;
+  const canComment = Boolean(position && complaint);
 
   async function vote(vote_type: VoteType) {
     if (!position || !complaint) return;
@@ -270,10 +273,10 @@ export function ComplaintDetail({ id }: { id: string }) {
         {distance != null && (
           <p className="mb-3 text-xs text-slate-500">
             Estás a {formatDistance(distance)} de esta queja.
-            {!canInteract && (
+            {!canVerify && (
               <span className="mt-1 flex items-center gap-1 font-medium text-orange-600 dark:text-orange-400">
                 <AlertTriangle className="h-3.5 w-3.5" />
-                Debes estar a ≤10 km para votar o comentar.
+                Para decir si sigue o está arreglada hay que estar a 1 km. Comentar se puede desde cualquier sitio.
               </span>
             )}
           </p>
@@ -286,22 +289,22 @@ export function ComplaintDetail({ id }: { id: string }) {
         <div className="flex flex-wrap gap-2">
           <Button
             variant="secondary"
-            disabled={!canInteract || busy}
+            disabled={!canVerify || busy}
             onClick={() => void vote("real")}
-            title={!canInteract ? "Fuera del radio de 10 km" : undefined}
+            title={!canVerify ? "Hay que estar a 1 km" : undefined}
           >
             <ThumbsUp className="h-4 w-4" /> Real ({complaint.votes_real})
           </Button>
           <Button
             variant="outline"
-            disabled={!canInteract || busy}
+            disabled={!canVerify || busy}
             onClick={() => void vote("fake")}
           >
             <ThumbsDown className="h-4 w-4" /> Falsa ({complaint.votes_fake})
           </Button>
           <Button
             variant="success"
-            disabled={!canInteract || busy}
+            disabled={!canVerify || busy}
             onClick={() => void vote("resolved")}
           >
             <CheckCircle2 className="h-4 w-4" /> Resuelta ({complaint.votes_resolved})
@@ -332,20 +335,20 @@ export function ComplaintDetail({ id }: { id: string }) {
             <p className="text-sm text-slate-500">Sé el primero en comentar.</p>
           )}
         </div>
-        <div className={cn("space-y-2", !canInteract && "opacity-60")}>
+        <div className={cn("space-y-2", !canComment && "opacity-60")}>
           <Textarea
             value={body}
             onChange={(e) => setBody(e.target.value)}
             placeholder={
-              canInteract
+              canComment
                 ? "Escribe un comentario…"
-                : "Comentarios deshabilitados: estás a más de 10 km"
+                : "Activa la ubicación para comentar"
             }
-            disabled={!canInteract || busy}
+            disabled={!canComment || busy}
           />
           <Button
             onClick={() => void comment()}
-            disabled={!canInteract || busy || body.trim().length < 2 || !commentTone.ok}
+            disabled={!canComment || busy || body.trim().length < 2 || !commentTone.ok}
           >
             Publicar comentario
           </Button>

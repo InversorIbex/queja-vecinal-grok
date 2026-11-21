@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { Bell, BellOff, UserRound } from "lucide-react";
 import { toast } from "sonner";
 import { getOrCreateNickname } from "@/lib/utils";
@@ -112,6 +113,12 @@ export default function PerfilPage() {
           </Button>
         </CardContent>
       </Card>
+
+      <p className="text-center text-sm">
+        <Link href="/privacidad" className="font-semibold text-sky-700">
+          Privacidad
+        </Link>
+      </p>
     </div>
   );
 }

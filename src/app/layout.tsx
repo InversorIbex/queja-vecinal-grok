@@ -26,7 +26,7 @@ export const metadata: Metadata = {
     template: `%s · ${APP_NAME}`,
   },
   description:
-    "Reporta lo que viste hoy, hasta 20 km de donde estás. PWA móvil y web sincronizadas. Quejas anónimas, votos y reputación vecinal.",
+    "Reporta un problema del barrio, esté donde esté. Para comprobar si sigue o ya está arreglado hay que estar a 1 km. PWA móvil y web sincronizadas.",
   applicationName: APP_NAME,
   manifest: "/manifest.webmanifest",
   appleWebApp: {
@@ -72,6 +72,11 @@ export default function RootLayout({
   return (
     <html lang="es" suppressHydrationWarning>
       <body className={`${display.variable} ${body.variable} antialiased`}>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){function bad(v){v=String(v||"");return v.indexOf("ChunkLoadError")!==-1||v.indexOf("Loading chunk")!==-1||v.indexOf("Failed to fetch dynamically imported module")!==-1;}function reload(){try{if(sessionStorage.getItem("qv_chunk_reload"))return;sessionStorage.setItem("qv_chunk_reload","1");}catch(e){}var done=function(){location.reload();};if(navigator.serviceWorker){navigator.serviceWorker.getRegistrations().then(function(regs){return Promise.all(regs.map(function(r){return r.unregister();}));}).catch(function(){}).finally(done);}else done();}window.addEventListener("error",function(e){if(bad(e.message)||bad(e.error&&e.error.name)||bad(e.error&&e.error.message))reload();});window.addEventListener("unhandledrejection",function(e){var r=e.reason||{};if(bad(r.name)||bad(r.message))reload();});window.addEventListener("load",function(){setTimeout(function(){try{sessionStorage.removeItem("qv_chunk_reload");}catch(e){}},4000);});})();`,
+          }}
+        />
         <Providers>{children}</Providers>
       </body>
     </html>
