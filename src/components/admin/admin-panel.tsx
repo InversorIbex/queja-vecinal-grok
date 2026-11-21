@@ -308,6 +308,21 @@ export function AdminPanel() {
                 </div>
                 <h3 className="font-semibold">{c.title}</h3>
                 <p className="mt-1 line-clamp-2 text-sm text-slate-500">{c.description}</p>
+                {c.photos?.length > 0 ? (
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {c.photos.map((url, index) => (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        key={`${c.id}-${index}`}
+                        src={url}
+                        alt={`Foto ${index + 1} de ${c.tracking_code}`}
+                        className="h-36 max-w-full rounded-xl bg-slate-100 object-cover"
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <p className="mt-2 text-xs text-amber-700">Sin foto guardada</p>
+                )}
                 <p className="mt-1 text-xs text-slate-400">
                   {c.anonymous_nickname} · {c.tracking_code} · {c.lat.toFixed(4)}, {c.lng.toFixed(4)}
                 </p>
