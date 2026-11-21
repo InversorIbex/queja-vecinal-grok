@@ -4,7 +4,9 @@ import { cookies } from "next/headers";
 import { isDemoMode } from "@/lib/utils";
 
 export async function createClient() {
-  if (isDemoMode()) return null;
+  if (isDemoMode() || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.startsWith("eyJ")) {
+    return null;
+  }
 
   const cookieStore = await cookies();
   return createServerClient(
@@ -32,7 +34,7 @@ export async function createClient() {
 /** Cliente con service role para validaciones servidor / admin. */
 export function createServiceClient() {
   if (
-    !process.env.NEXT_PUBLIC_SUPABASE_URL ||
+    !process.env.NEXT_PUBLIC_SUPABASE_URL?.startsWith("http") ||
     !process.env.SUPABASE_SERVICE_ROLE_KEY
   ) {
     return null;

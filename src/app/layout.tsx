@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Fraunces, Manrope } from "next/font/google";
 import { Providers } from "@/components/layout/providers";
 import { APP_NAME, APP_TAGLINE } from "@/lib/constants";
+import { siteOrigin } from "@/lib/utils";
 import "./globals.css";
 
 const display = Fraunces({
@@ -16,7 +17,7 @@ const body = Manrope({
   weight: ["400", "500", "600", "700"],
 });
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+const siteUrl = siteOrigin();
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -25,7 +26,7 @@ export const metadata: Metadata = {
     template: `%s · ${APP_NAME}`,
   },
   description:
-    "Reporta problemas del barrio a ≤10 km. PWA móvil y web sincronizadas. Quejas anónimas, votos y reputación vecinal.",
+    "Reporta lo que viste hoy, hasta 20 km de donde estás. PWA móvil y web sincronizadas. Quejas anónimas, votos y reputación vecinal.",
   applicationName: APP_NAME,
   manifest: "/manifest.webmanifest",
   appleWebApp: {

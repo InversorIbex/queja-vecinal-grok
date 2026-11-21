@@ -18,6 +18,7 @@ export async function GET(req: NextRequest) {
     approved: all.filter((c) => c.status === "approved").length,
     resolved: all.filter((c) => c.status === "resolved").length,
     rejected: all.filter((c) => c.status === "rejected").length,
+    sent: all.filter((c) => c.email_status === "sent").length,
     byCategory: Object.fromEntries(
       [...new Set(all.map((c) => c.category))].map((cat) => [
         cat,

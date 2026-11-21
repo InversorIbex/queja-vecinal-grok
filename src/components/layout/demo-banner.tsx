@@ -5,7 +5,8 @@ import { useEffect, useState } from "react";
 export function DemoBanner() {
   const [demo, setDemo] = useState(false);
   useEffect(() => {
-    setDemo(!process.env.NEXT_PUBLIC_SUPABASE_URL);
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
+    setDemo(!url.startsWith("http"));
   }, []);
   if (!demo) return null;
   return (

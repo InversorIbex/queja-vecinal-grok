@@ -11,7 +11,7 @@ import {
   useMap,
 } from "react-leaflet";
 import type { Complaint, GeoPosition } from "@/types";
-import { CATEGORIES, MAX_DISTANCE_M } from "@/lib/constants";
+import { categoryMeta } from "@/lib/constants";
 import { useState } from "react";
 import "leaflet/dist/leaflet.css";
 
@@ -30,7 +30,6 @@ export default function MapInner({
   complaints,
   heat,
   adminLayer,
-  userPosition,
   onSelect,
   onLayerClick,
 }: {
@@ -38,7 +37,6 @@ export default function MapInner({
   complaints: Complaint[];
   heat: boolean;
   adminLayer: LayerKey;
-  userPosition: GeoPosition | null;
   onSelect: (c: Complaint) => void;
   onLayerClick: (name: string | null) => void;
 }) {
@@ -83,29 +81,6 @@ export default function MapInner({
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
       <Recenter center={center} />
-
-      {userPosition && (
-        <>
-          <CircleMarker
-            center={[userPosition.lat, userPosition.lng]}
-            radius={8}
-            pathOptions={{ color: "#0284c7", fillColor: "#0ea5e9", fillOpacity: 1 }}
-          >
-            <Popup>Tu ubicación</Popup>
-          </CircleMarker>
-          <Circle
-            center={[userPosition.lat, userPosition.lng]}
-            radius={MAX_DISTANCE_M}
-            pathOptions={{
-              color: "#0ea5e9",
-              fillColor: "#38bdf8",
-              fillOpacity: 0.08,
-              weight: 1.5,
-              dashArray: "6 6",
-            }}
-          />
-        </>
-      )}
 
       {geo && (
         <GeoJSON
@@ -152,7 +127,7 @@ export default function MapInner({
                 fillColor:
                   c.status === "resolved"
                     ? "#059669"
-                    : CATEGORIES[c.category].color,
+                    : categoryMeta(c.category).color,
                 fillOpacity: 0.95,
               }}
               eventHandlers={{ click: () => onSelect(c) }}
@@ -160,7 +135,7 @@ export default function MapInner({
               <Popup>
                 <strong>{c.title}</strong>
                 <br />
-                {CATEGORIES[c.category].label}
+                {categoryMeta(c.category).label}
               </Popup>
             </CircleMarker>
           ))}

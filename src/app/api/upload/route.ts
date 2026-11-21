@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
       url: result.url,
       demo: result.demo,
       message: result.demo
-        ? "Modo demo: Cloudinary no configurado; se guarda la imagen localmente (data URL)."
+        ? "La foto se queda con la queja. El almacén de imágenes no la aceptó."
         : "Imagen subida correctamente.",
     });
   } catch (e) {

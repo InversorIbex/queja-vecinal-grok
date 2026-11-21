@@ -36,8 +36,43 @@ export function formatDate(iso: string): string {
 }
 
 export function isDemoMode(): boolean {
-  return (
-    !process.env.NEXT_PUBLIC_SUPABASE_URL ||
-    !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-  );
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
+  if (!url.startsWith("http")) return true;
+  if (typeof window !== "undefined") return false;
+  return !process.env.SUPABASE_SERVICE_ROLE_KEY;
+}
+
+/** La anon key tiene que ser un JWT. Si falta, la web sigue por API y se apaga el realtime. */
+export function hasSupabaseAnon(): boolean {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "";
+  return url.startsWith("http") && key.startsWith("eyJ");
+}
+
+export function siteOrigin(): string {
+  const raw = (process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000").trim();
+  const withProtocol = /^https?:\/\//i.test(raw) ? raw : `https://${raw}`;
+  return withProtocol.replace(/\/$/, "");
+}
+
+export interface SavedTracking {
+  code: string;
+  title: string;
+  at: string;
+}
+
+export function rememberTracking(entry: SavedTracking): void {
+  if (typeof window === "undefined") return;
+  const prev = readTracking().filter((item) => item.code !== entry.code);
+  localStorage.setItem("qv_tracking", JSON.stringify([entry, ...prev].slice(0, 20)));
+}
+
+export function readTracking(): SavedTracking[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const parsed = JSON.parse(localStorage.getItem("qv_tracking") || "[]") as SavedTracking[];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
 }

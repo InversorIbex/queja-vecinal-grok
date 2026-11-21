@@ -15,14 +15,16 @@ import {
 import { toast } from "sonner";
 import {
   ADMIN_LEVELS,
-  CATEGORIES,
+  EMAIL_STATUS_LABELS,
   STATUS_LABELS,
+  categoryMeta,
 } from "@/lib/constants";
+import { inspectTone } from "@/lib/moderation";
 import { formatDate, formatDistance, getOrCreateNickname } from "@/lib/utils";
-import { haversineMeters, within10km } from "@/lib/geo";
+import { haversineMeters, mapsUrl, within10km } from "@/lib/geo";
 import { useGeolocation } from "@/hooks/use-geolocation";
 import { useComplaintsSync } from "@/hooks/use-sync";
-import type { Comment, Complaint, VoteType } from "@/types";
+import type { Comment, Complaint, ComplaintEvent, VoteType } from "@/types";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -31,6 +33,7 @@ import { cn } from "@/lib/utils";
 export function ComplaintDetail({ id }: { id: string }) {
   const [complaint, setComplaint] = useState<Complaint | null>(null);
   const [comments, setComments] = useState<Comment[]>([]);
+  const [events, setEvents] = useState<ComplaintEvent[]>([]);
   const [body, setBody] = useState("");
   const [busy, setBusy] = useState(false);
   const { position, refresh } = useGeolocation();
@@ -44,6 +47,7 @@ export function ComplaintDetail({ id }: { id: string }) {
     const data = await res.json();
     setComplaint(data.complaint);
     setComments(data.comments ?? []);
+    setEvents(data.events ?? []);
   }, [id]);
 
   useEffect(() => {
@@ -92,6 +96,11 @@ export function ComplaintDetail({ id }: { id: string }) {
 
   async function comment() {
     if (!position || !body.trim()) return;
+    const tone = inspectTone(body);
+    if (!tone.ok) {
+      toast.error(tone.message);
+      return;
+    }
     setBusy(true);
     try {
       const res = await fetch(`/api/complaints/${id}/comments`, {
@@ -157,6 +166,8 @@ export function ComplaintDetail({ id }: { id: string }) {
         : complaint.status === "rejected"
           ? "rejected"
           : "approved";
+  const published = complaint.status === "approved" || complaint.status === "resolved";
+  const commentTone = inspectTone(body);
 
   return (
     <motion.article
@@ -179,15 +190,44 @@ export function ComplaintDetail({ id }: { id: string }) {
       <header className="space-y-3">
         <div className="flex flex-wrap items-center gap-2">
           <Badge variant={statusVariant}>{STATUS_LABELS[complaint.status]}</Badge>
-          <Badge variant="outline">{CATEGORIES[complaint.category].label}</Badge>
+          <Badge variant="outline">{categoryMeta(complaint.category).label}</Badge>
           <Badge variant="outline">{ADMIN_LEVELS[complaint.admin_level]}</Badge>
+          {complaint.email_status && complaint.email_status !== "none" && (
+            <Badge variant="outline">{EMAIL_STATUS_LABELS[complaint.email_status]}</Badge>
+          )}
         </div>
         <h1 className="font-display text-2xl font-bold tracking-tight sm:text-3xl">
           {complaint.title}
         </h1>
         <p className="text-sm text-slate-500">
           {complaint.anonymous_nickname} · {formatDate(complaint.created_at)}
+          {complaint.tracking_code ? ` · ${complaint.tracking_code}` : ""}
         </p>
+        {complaint.category === "otros" && complaint.category_detail && (
+          <p className="text-sm text-slate-500">Tipo: {complaint.category_detail}</p>
+        )}
+        <p className="text-sm text-slate-600 dark:text-slate-300">
+          {complaint.calle || "Sin calle con nombre junto al punto"}
+          {complaint.barrio ? ` · Barrio ${complaint.barrio}` : ""}
+          {complaint.municipio ? ` · ${complaint.municipio}` : ""}
+        </p>
+        <p className="text-sm">
+          <span className="font-mono text-slate-500">
+            {complaint.lat.toFixed(5)}, {complaint.lng.toFixed(5)}
+          </span>
+          {" · "}
+          <a
+            href={mapsUrl(complaint.lat, complaint.lng)}
+            target="_blank"
+            rel="noreferrer"
+            className="font-semibold text-sky-700 underline dark:text-sky-300"
+          >
+            Ver en Google Maps
+          </a>
+        </p>
+        {complaint.recipient_name && (
+          <p className="text-sm text-slate-500">Se enviará a {complaint.recipient_name}</p>
+        )}
         <p className="leading-relaxed text-slate-700 dark:text-slate-200">
           {complaint.description}
         </p>
@@ -201,6 +241,30 @@ export function ComplaintDetail({ id }: { id: string }) {
         )}
       </header>
 
+      {complaint.tracking_code && (
+        <p className="text-sm">
+          <Link
+            href={`/seguimiento/${complaint.tracking_code}`}
+            className="font-semibold text-sky-600"
+          >
+            Seguir {complaint.tracking_code}
+          </Link>
+        </p>
+      )}
+
+      {events.length > 0 && (
+        <ol className="space-y-2 border-l-2 border-sky-200 pl-4 text-sm dark:border-sky-900">
+          {events.map((event) => (
+            <li key={event.id}>
+              <p>{event.message}</p>
+              <p className="text-xs text-slate-400">{formatDate(event.created_at)}</p>
+            </li>
+          ))}
+        </ol>
+      )}
+
+      {published ? (
+      <>
       <section className="rounded-2xl border border-slate-200 p-4 dark:border-slate-700">
         <h2 className="mb-3 font-display text-lg font-semibold">Votos</h2>
         {distance != null && (
@@ -281,12 +345,20 @@ export function ComplaintDetail({ id }: { id: string }) {
           />
           <Button
             onClick={() => void comment()}
-            disabled={!canInteract || busy || body.trim().length < 2}
+            disabled={!canInteract || busy || body.trim().length < 2 || !commentTone.ok}
           >
             Publicar comentario
           </Button>
+          {!commentTone.ok && <p className="text-sm text-rose-600">{commentTone.message}</p>}
         </div>
       </section>
+      </>
+      ) : (
+        <p className="rounded-2xl bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:bg-amber-950/40 dark:text-amber-100">
+          Esta queja todavía no está en el mapa público. Cuando un administrador la apruebe,
+          se enviará a la administración y aquí se podrán dejar votos y comentarios.
+        </p>
+      )}
     </motion.article>
   );
 }

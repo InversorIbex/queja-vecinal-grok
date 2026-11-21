@@ -4,11 +4,10 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { Filter, Flame, Layers, MapPin } from "lucide-react";
-import { CATEGORIES, DEMO_CENTER } from "@/lib/constants";
+import { CATEGORIES, DEMO_CENTER, categoryMeta } from "@/lib/constants";
 import type { Complaint, ComplaintCategory } from "@/types";
 import { useGeolocation } from "@/hooks/use-geolocation";
 import { useComplaintsSync } from "@/hooks/use-sync";
-import { useIsDesktop, useIsLandscape } from "@/hooks/use-media-query";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -32,8 +31,6 @@ export function PublicMap() {
   const [selected, setSelected] = useState<Complaint | null>(null);
   const [layerName, setLayerName] = useState<string | null>(null);
   const { position, usingDemo, refresh } = useGeolocation();
-  const isDesktop = useIsDesktop();
-  const isLandscape = useIsLandscape();
 
   const load = useCallback(async () => {
     const qs =
@@ -53,21 +50,13 @@ export function PublicMap() {
   const center = position ?? DEMO_CENTER;
 
   return (
-    <div
-      className={cn(
-        "relative flex w-full",
-        isDesktop || (isLandscape && !isDesktop)
-          ? "h-[calc(100dvh-0px)] lg:h-dvh"
-          : "h-[calc(100dvh-3.5rem)]"
-      )}
-    >
-      <div className="relative min-h-0 min-w-0 flex-1">
+    <div className="relative flex h-[calc(100dvh-3.5rem-4.5rem)] w-full lg:h-dvh">
+      <div className="relative h-full min-h-0 min-w-0 flex-1">
         <MapInner
           center={center}
           complaints={filtered}
           heat={heat}
           adminLayer={layer}
-          userPosition={position}
           onSelect={setSelected}
           onLayerClick={setLayerName}
         />
@@ -75,8 +64,7 @@ export function PublicMap() {
         {/* Controles — adaptan posición en landscape */}
         <div
           className={cn(
-            "absolute z-[500] flex flex-col gap-2",
-            isLandscape && !isDesktop ? "left-2 top-2" : "left-3 top-3"
+            "absolute z-[500] flex flex-col gap-2 left-3 top-3"
           )}
         >
           <div className="rounded-2xl border border-slate-200/80 bg-white/95 p-2 shadow-lg backdrop-blur dark:border-slate-700 dark:bg-slate-900/95">
@@ -142,24 +130,21 @@ export function PublicMap() {
       {/* Panel lateral en desktop / lista en mobile portrait */}
       <aside
         className={cn(
-          "z-[400] flex flex-col border-slate-200 bg-white/95 backdrop-blur dark:border-slate-800 dark:bg-slate-950/95",
-          isDesktop
-            ? "w-96 border-l"
-            : isLandscape
-              ? "absolute bottom-0 right-0 top-0 w-72 border-l"
-              : "absolute inset-x-0 bottom-0 max-h-[38%] rounded-t-3xl border-t shadow-2xl"
+          "absolute inset-x-0 bottom-0 z-[400] flex max-h-[42%] flex-col rounded-t-3xl border-t border-slate-200 bg-white/95 shadow-2xl backdrop-blur dark:border-slate-800 dark:bg-slate-950/95",
+          "lg:static lg:z-auto lg:h-full lg:max-h-none lg:w-96 lg:shrink-0 lg:rounded-none lg:border-l lg:border-t-0 lg:shadow-none"
         )}
       >
-        <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3 dark:border-slate-800">
+        <div className="flex items-center justify-between gap-2 border-b border-slate-100 px-4 py-3 dark:border-slate-800">
           <div>
-            <h2 className="font-display text-base font-semibold">Quejas cercanas</h2>
-            <p className="text-xs text-slate-500">{filtered.length} visibles</p>
+            <h2 className="font-display text-base font-semibold">Quejas del barrio</h2>
+            <p className="text-xs text-slate-500">{filtered.length} visibles en el mapa</p>
           </div>
-          {selected && (
-            <Badge variant={selected.status === "resolved" ? "resolved" : "approved"}>
-              Seleccionada
-            </Badge>
-          )}
+          <Link
+            href="/quejas/nueva"
+            className="shrink-0 rounded-full bg-orange-500 px-3 py-1.5 text-xs font-semibold text-white"
+          >
+            Contar lo que pasa
+          </Link>
         </div>
         <ul className="flex-1 space-y-2 overflow-y-auto p-3">
           {(selected ? [selected, ...filtered.filter((c) => c.id !== selected.id)] : filtered)
@@ -179,10 +164,10 @@ export function PublicMap() {
                   <div className="mb-1 flex items-center gap-2">
                     <span
                       className="h-2 w-2 rounded-full"
-                      style={{ background: CATEGORIES[c.category].color }}
+                      style={{ background: categoryMeta(c.category).color }}
                     />
                     <span className="text-[10px] font-medium text-slate-500">
-                      {CATEGORIES[c.category].label}
+                      {categoryMeta(c.category).label}
                     </span>
                     {c.status === "resolved" && (
                       <Badge variant="resolved" className="ml-auto">

@@ -1,8 +1,16 @@
-import type { Comment, Complaint, RankingEntry, Report, Vote } from "@/types";
+import type {
+  AdminLevel,
+  Comment,
+  Complaint,
+  ComplaintEvent,
+  RankingEntry,
+  Report,
+  Vote,
+} from "@/types";
 
 const now = Date.now();
 
-export const DEMO_COMPLAINTS: Complaint[] = [
+const SEED: Omit<Complaint, "tracking_code">[] = [
   {
     id: "demo-1",
     anonymous_nickname: "Vecino_4821",
@@ -119,6 +127,17 @@ export const DEMO_COMPLAINTS: Complaint[] = [
   },
 ];
 
+export const DEMO_COMPLAINTS: Complaint[] = SEED.map((complaint, index) => ({
+  ...complaint,
+  tracking_code: `QV-DEMO${index + 1}`,
+  email_status: "none",
+  municipio: "Madrid",
+  provincia: "Madrid",
+  comunidad: "Comunidad de Madrid",
+  recipient_name: "Ayuntamiento de Madrid",
+  mailbox_key: "ayto:madrid",
+}));
+
 export const DEMO_COMMENTS: Record<string, Comment[]> = {
   "demo-1": [
     {
@@ -196,10 +215,34 @@ export const DEMO_RANKINGS: RankingEntry[] = [
   },
 ];
 
+export const DEMO_EVENTS: ComplaintEvent[] = [
+  {
+    id: "e1",
+    complaint_id: "demo-1",
+    kind: "created",
+    message: "Queja registrada. Un administrador la revisará antes de enviarla.",
+    created_at: new Date(now - 86400000 * 3).toISOString(),
+  },
+  {
+    id: "e2",
+    complaint_id: "demo-1",
+    kind: "approved",
+    message: "Aprobada por el administrador.",
+    created_at: new Date(now - 86400000 * 2).toISOString(),
+  },
+];
+
 /** In-memory mutable store for demo mode (server process). */
 export const demoStore = {
   complaints: [...DEMO_COMPLAINTS] as Complaint[],
   comments: { ...DEMO_COMMENTS } as Record<string, Comment[]>,
   votes: [...DEMO_VOTES] as Vote[],
   reports: [...DEMO_REPORTS] as Report[],
+  events: [...DEMO_EVENTS] as ComplaintEvent[],
+  mailboxes: [] as {
+    key: string;
+    admin_level: AdminLevel;
+    name: string;
+    email: string;
+  }[],
 };

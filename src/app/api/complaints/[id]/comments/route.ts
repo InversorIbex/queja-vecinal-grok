@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { addComment, listComments } from "@/lib/complaints-store";
+import { inspectTone } from "@/lib/moderation";
 import { rateLimit } from "@/lib/rate-limit";
 
 type Ctx = { params: Promise<{ id: string }> };
@@ -34,6 +35,11 @@ export async function POST(req: NextRequest, ctx: Ctx) {
     const parsed = schema.safeParse(body);
     if (!parsed.success) {
       return NextResponse.json({ error: "Datos inválidos" }, { status: 400 });
+    }
+
+    const tone = inspectTone(`${parsed.data.body}\n${parsed.data.author_nickname}`);
+    if (!tone.ok) {
+      return NextResponse.json({ error: tone.message }, { status: 400 });
     }
 
     const result = await addComment({

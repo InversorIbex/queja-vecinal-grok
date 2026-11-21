@@ -1,8 +1,8 @@
 import { createBrowserClient } from "@supabase/ssr";
-import { isDemoMode } from "@/lib/utils";
+import { hasSupabaseAnon } from "@/lib/utils";
 
 export function createClient() {
-  if (isDemoMode()) {
+  if (!hasSupabaseAnon()) {
     return null;
   }
   return createBrowserClient(

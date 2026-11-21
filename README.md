@@ -19,11 +19,34 @@ Manifest con `"orientation": "any"`. No es un layout móvil estirado: ≥1024 
 ## Reglas de negocio
 
 - Geolocalización obligatoria al **crear**, **votar** y **comentar**.
-- Distancia máxima **10 km** (Haversine en cliente + PostGIS/`within_10km` en servidor).
+- Publicar: el punto de la queja puede estar hasta **20 km** de donde estás ahora (lo que viste durante el día, al llegar a casa).
+- Votar y comentar: sigues teniendo que estar a **≤10 km** del punto.
 - Quejas nuevas en `pending` hasta moderación.
 - Nick anónimo tipo `Vecino_4821` si no hay sesión.
-- Categorías: Baches y carreteras, Mobiliario urbano, Parques y jardines, Limpieza, Iluminación, Señales, Otros.
-- Destinos: Ayuntamiento / Provincia / Comunidad / Estado.
+- Categorías de calle, diputación, comunidad y Estado, más «Otra cosa».
+- Un filtro impide publicar insultos o tacos en la queja y en los comentarios.
+- Cada queja tiene un código `QV-······` para seguirla en `/seguimiento`.
+- Al aprobar, se envía sola al buzón de la administración competente (SMTP).
+
+## Correo a la administración
+
+En `.env.local`:
+
+```env
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=tu@gmail.com
+SMTP_PASS=contraseña-de-aplicacion
+SMTP_FROM=QuejasVecinales <tu@gmail.com>
+ADMIN_NOTIFY_EMAIL=tu@gmail.com
+```
+
+Sin SMTP la queja se aprueba y el panel indica que falta el correo de salida.
+Si el ayuntamiento, la diputación, la comunidad o el ministerio no están en el directorio, el administrador pega el buzón una vez y las siguientes quejas de ese territorio salen solas.
+
+Buzones ya incluidos (publicados por la propia administración): Comunidad de Madrid, Xunta de Galicia y Diputación de A Coruña.
+
+Ejecuta `supabase/migrations/001_init.sql` solo en un proyecto nuevo. El Supabase ya conectado usa su tabla `complaints` actual y la app se adapta a ella.
 
 ## Stack
 
@@ -51,10 +74,10 @@ npm run build   # debe pasar
 npm start
 ```
 
-### Admin demo
+### Admin
 
 1. Ve a `/admin`
-2. Secreto: `demo-admin` (o `ADMIN_SECRET` del `.env`)
+2. Secreto: el valor de `ADMIN_SECRET` (en demo, si no hay `.env.local`: `demo-admin`)
 
 ## Supabase + PostGIS
 

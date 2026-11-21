@@ -23,12 +23,14 @@ export default function ImpactoPage() {
     0
   );
 
-  const byCat = Object.entries(CATEGORIES).map(([key, meta]) => ({
-    key,
-    label: meta.label,
-    color: meta.color,
-    count: complaints.filter((c) => c.category === key).length,
-  }));
+  const byCat = Object.entries(CATEGORIES)
+    .map(([key, meta]) => ({
+      key,
+      label: meta.label,
+      color: meta.color,
+      count: complaints.filter((c) => c.category === key).length,
+    }))
+    .filter((item) => item.count > 0);
 
   return (
     <div className="mx-auto max-w-5xl space-y-8 p-4 sm:p-8">

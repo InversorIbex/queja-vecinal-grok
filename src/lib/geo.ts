@@ -1,4 +1,4 @@
-import { MAX_DISTANCE_M } from "./constants";
+import { MAX_DISTANCE_M, REPORT_RADIUS_M } from "./constants";
 import type { GeoPosition } from "@/types";
 
 const EARTH_RADIUS_M = 6_371_000;
@@ -56,18 +56,41 @@ export function getCurrentPosition(
   });
 }
 
+export function assertWithinRadius(
+  user: GeoPosition,
+  target: GeoPosition,
+  maxMeters: number,
+  action = "realizar esta acción"
+): { ok: true; distance_m: number } | { ok: false; distance_m: number; message: string } {
+  const distance_m = haversineMeters(user, target);
+  if (distance_m > maxMeters) {
+    const km = (maxMeters / 1000).toFixed(0);
+    return {
+      ok: false,
+      distance_m,
+      message: `Ese punto está a ${(distance_m / 1000).toFixed(1)} km. El máximo para ${action} es ${km} km.`,
+    };
+  }
+  return { ok: true, distance_m };
+}
+
 export function assertWithin10km(
   user: GeoPosition,
   target: GeoPosition,
   action = "realizar esta acción"
-): { ok: true; distance_m: number } | { ok: false; distance_m: number; message: string } {
-  const distance_m = haversineMeters(user, target);
-  if (distance_m > MAX_DISTANCE_M) {
-    return {
-      ok: false,
-      distance_m,
-      message: `Estás a ${(distance_m / 1000).toFixed(1)} km. Debes estar a ≤10 km para ${action}.`,
-    };
-  }
-  return { ok: true, distance_m };
+) {
+  return assertWithinRadius(user, target, MAX_DISTANCE_M, action);
+}
+
+export function mapsUrl(lat: number, lng: number): string {
+  return `https://www.google.com/maps?q=${lat.toFixed(6)},${lng.toFixed(6)}`;
+}
+
+export function assertWithinReportRadius(user: GeoPosition, target: GeoPosition) {
+  return assertWithinRadius(
+    user,
+    target,
+    REPORT_RADIUS_M,
+    "publicar la queja"
+  );
 }
