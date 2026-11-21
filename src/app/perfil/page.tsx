@@ -116,7 +116,7 @@ export default function PerfilPage() {
 
       <p className="text-center text-sm">
         <Link href="/privacidad" className="font-semibold text-sky-700">
-          Privacidad
+          Política de privacidad
         </Link>
       </p>
     </div>
