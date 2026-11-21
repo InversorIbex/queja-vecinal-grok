@@ -92,6 +92,9 @@ export async function createComplaint(input: {
   comunidad?: string | null;
   calle?: string | null;
   barrio?: string | null;
+  via_ref?: string | null;
+  via_name?: string | null;
+  via_pk?: string | null;
   recipient_name?: string | null;
   recipient_email?: string | null;
   mailbox_key?: string | null;
@@ -118,6 +121,9 @@ export async function createComplaint(input: {
     comunidad: input.comunidad || null,
     calle: input.calle || null,
     barrio: input.barrio || null,
+    via_ref: input.via_ref || null,
+    via_name: input.via_name || null,
+    via_pk: input.via_pk || null,
     recipient_name: input.recipient_name || null,
     recipient_email: input.recipient_email || null,
     mailbox_key: input.mailbox_key || null,

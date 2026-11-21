@@ -9,6 +9,9 @@ export interface Territory {
   calle: string;
   barrio: string;
   label: string;
+  osmType?: string;
+  osmId?: number;
+  osmCategory?: string;
 }
 
 const cache = new Map<string, Territory>();
@@ -56,6 +59,8 @@ export async function resolveTerritory(lat: number, lng: number): Promise<Territ
     const data = (await res.json()) as {
       name?: string;
       category?: string;
+      osm_type?: string;
+      osm_id?: number;
       display_name?: string;
       address?: Record<string, string>;
     };
@@ -83,6 +88,9 @@ export async function resolveTerritory(lat: number, lng: number): Promise<Territ
       calle,
       barrio: barrio && barrio !== municipio ? barrio : "",
       label: data.display_name || "",
+      osmType: data.osm_type,
+      osmId: data.osm_id,
+      osmCategory: data.category,
     };
     cache.set(cacheKey, territory);
     return territory;

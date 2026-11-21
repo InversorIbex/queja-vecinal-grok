@@ -209,10 +209,22 @@ export function ComplaintDetail({ id }: { id: string }) {
         {complaint.category === "otros" && complaint.category_detail && (
           <p className="text-sm text-slate-500">Tipo: {complaint.category_detail}</p>
         )}
+        {complaint.via_ref && (
+          <p className="text-sm text-slate-600 dark:text-slate-300">
+            Vía {complaint.via_ref}
+            {complaint.via_name ? ` (${complaint.via_name})` : ""}
+            {" · "}
+            {complaint.via_pk ? `punto kilométrico ${complaint.via_pk.replace("PK ", "")}` : "punto kilométrico no identificado"}
+          </p>
+        )}
         <p className="text-sm text-slate-600 dark:text-slate-300">
           {complaint.calle || "Sin calle con nombre junto al punto"}
           {complaint.barrio ? ` · Barrio ${complaint.barrio}` : ""}
-          {complaint.municipio ? ` · ${complaint.municipio}` : ""}
+          {complaint.municipio
+            ? complaint.via_ref
+              ? ` · Zona afectada: Ayuntamiento de ${complaint.municipio}`
+              : ` · ${complaint.municipio}`
+            : ""}
         </p>
         <p className="text-sm">
           <span className="font-mono text-slate-500">

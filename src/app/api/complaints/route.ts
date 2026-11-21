@@ -5,6 +5,7 @@ import { rateLimit } from "@/lib/rate-limit";
 import { MAX_PHOTOS } from "@/lib/constants";
 import { assertOnLand } from "@/lib/land";
 import { inspectTone } from "@/lib/moderation";
+import { resolveRoad } from "@/lib/road";
 import { resolveTerritory, routeComplaint } from "@/lib/territory";
 import { COMPLAINT_CATEGORIES, type ComplaintCategory } from "@/types";
 
@@ -24,6 +25,7 @@ const createSchema = z.object({
     .max(MAX_PHOTOS),
   anonymous_nickname: z.string().min(3).max(40),
   reporter_email: z.string().max(160).optional().default(""),
+  level_manual: z.boolean().optional().default(false),
 });
 
 function errorText(error: unknown): string {
@@ -117,21 +119,38 @@ export async function POST(req: NextRequest) {
     }
 
     const territory = await resolveTerritory(parsed.data.lat, parsed.data.lng);
+    const road = await resolveRoad({
+      lat: parsed.data.lat,
+      lng: parsed.data.lng,
+      comunidad: territory.comunidad,
+      osmType: territory.osmType,
+      osmId: territory.osmId,
+      osmCategory: territory.osmCategory,
+    });
+    const { level_manual: manual, ...complaintInput } = parsed.data;
+    const level = !manual && road?.owner ? road.owner : parsed.data.admin_level;
     const office = await routeComplaint({
-      level: parsed.data.admin_level,
-      category: parsed.data.category,
+      level,
+      category:
+        road?.owner === "estado" && level === "estado"
+          ? "carreteras_estatales"
+          : parsed.data.category,
       territory,
     });
 
     const complaint = await createComplaint({
-      ...parsed.data,
+      ...complaintInput,
+      admin_level: level,
       category_detail: detail || null,
       reporter_email: reporter || null,
       municipio: territory.municipio || null,
       provincia: territory.provincia || null,
       comunidad: territory.comunidad || null,
-      calle: territory.calle || null,
+      calle: territory.calle || road?.ref || null,
       barrio: territory.barrio || null,
+      via_ref: road?.ref || null,
+      via_name: road && road.name !== road.ref ? road.name : null,
+      via_pk: road?.pk || null,
       recipient_name: office.name,
       recipient_email: office.email,
       mailbox_key: office.key,

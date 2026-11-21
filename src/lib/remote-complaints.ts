@@ -30,6 +30,9 @@ interface Meta {
   comunidad: string | null;
   calle: string | null;
   barrio: string | null;
+  via_ref?: string | null;
+  via_name?: string | null;
+  via_pk?: string | null;
   recipient_name: string | null;
   recipient_email: string | null;
   mailbox_key: string | null;
@@ -132,6 +135,9 @@ function toComplaint(row: RemoteRow): Complaint {
     comunidad: meta?.comunidad || row.ccaa,
     calle: meta?.calle ?? null,
     barrio: meta?.barrio ?? null,
+    via_ref: meta?.via_ref ?? null,
+    via_name: meta?.via_name ?? null,
+    via_pk: meta?.via_pk ?? null,
     recipient_name: meta?.recipient_name ?? null,
     recipient_email: meta?.recipient_email ?? null,
     mailbox_key: meta?.mailbox_key || row.municipio_code,
@@ -175,6 +181,9 @@ function emptyMeta(row: RemoteRow): Meta {
     comunidad: row.ccaa,
     calle: null,
     barrio: null,
+    via_ref: null,
+    via_name: null,
+    via_pk: null,
     recipient_name: null,
     recipient_email: null,
     mailbox_key: row.municipio_code,
@@ -252,6 +261,9 @@ export async function legacyCreateComplaint(input: {
   comunidad?: string | null;
   calle?: string | null;
   barrio?: string | null;
+  via_ref?: string | null;
+  via_name?: string | null;
+  via_pk?: string | null;
   recipient_name?: string | null;
   recipient_email?: string | null;
   mailbox_key?: string | null;
@@ -269,6 +281,9 @@ export async function legacyCreateComplaint(input: {
     comunidad: input.comunidad || null,
     calle: input.calle || null,
     barrio: input.barrio || null,
+    via_ref: input.via_ref || null,
+    via_name: input.via_name || null,
+    via_pk: input.via_pk || null,
     recipient_name: input.recipient_name || null,
     recipient_email: input.recipient_email || null,
     mailbox_key: input.mailbox_key || null,

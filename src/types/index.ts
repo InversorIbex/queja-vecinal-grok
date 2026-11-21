@@ -86,6 +86,9 @@ export interface Complaint {
   comunidad?: string | null;
   calle?: string | null;
   barrio?: string | null;
+  via_ref?: string | null;
+  via_name?: string | null;
+  via_pk?: string | null;
   recipient_name?: string | null;
   recipient_email?: string | null;
   mailbox_key?: string | null;

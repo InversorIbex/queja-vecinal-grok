@@ -36,6 +36,7 @@ interface RoutePreview {
     calle?: string;
     barrio?: string;
   };
+  road?: { ref?: string; name?: string; owner?: AdminLevel; pk?: string | null } | null;
   recipient?: { name?: string; known?: boolean; web?: string | null };
   hint?: string;
 }
@@ -81,14 +82,18 @@ export function CreateComplaintForm() {
         lng: String(spot.lng),
         level: adminLevel,
         category,
+        manual: levelTouched ? "1" : "0",
       });
       void fetch(`/api/geo/resolve?${qs}`)
         .then((res) => (res.ok ? res.json() : null))
-        .then((data) => setRoutePreview(data))
+        .then((data: RoutePreview | null) => {
+          setRoutePreview(data);
+          if (!levelTouched && data?.road?.owner) setAdminLevel(data.road.owner);
+        })
         .catch(() => setRoutePreview(null));
     }, 350);
     return () => clearTimeout(timer);
-  }, [spot, adminLevel, category]);
+  }, [spot, adminLevel, category, levelTouched]);
 
   async function placePin(lat: number, lng: number) {
     const req = ++pinReq.current;
@@ -101,9 +106,13 @@ export function CreateComplaintForm() {
         toast.error(data.error ?? "Ese punto está en el agua. La queja tiene que ir en tierra.");
         return;
       }
+      setLevelTouched(false);
       setPin({ lat, lng });
     } catch {
-      if (req === pinReq.current) setPin({ lat, lng });
+      if (req === pinReq.current) {
+        setLevelTouched(false);
+        setPin({ lat, lng });
+      }
     } finally {
       if (req === pinReq.current) setCheckingLand(false);
     }
@@ -111,7 +120,7 @@ export function CreateComplaintForm() {
 
   function chooseCategory(next: ComplaintCategory) {
     setCategory(next);
-    if (!levelTouched) setAdminLevel(CATEGORIES[next].defaultLevel);
+    if (!levelTouched && !routePreview?.road?.owner) setAdminLevel(CATEGORIES[next].defaultLevel);
   }
 
   async function onFiles(files: FileList | null) {
@@ -167,6 +176,7 @@ export function CreateComplaintForm() {
           category,
           category_detail: categoryDetail,
           admin_level: adminLevel,
+          level_manual: levelTouched,
           lat: spot.lat,
           lng: spot.lng,
           user_lat: position.lat,
@@ -369,13 +379,27 @@ export function CreateComplaintForm() {
                   ? "Marca el punto para ver la calle y el barrio"
                   : routePreview?.territory?.calle || "Buscando la calle más cercana…"}
               </p>
+              {spot && routePreview?.road?.ref && (
+                <p className="mt-1 text-emerald-800/90 dark:text-emerald-200/90">
+                  Vía {routePreview.road.ref}
+                  {routePreview.road.name && routePreview.road.name !== routePreview.road.ref
+                    ? ` (${routePreview.road.name})`
+                    : ""}
+                  {" · "}
+                  {routePreview.road.pk
+                    ? `punto kilométrico ${routePreview.road.pk.replace("PK ", "")}`
+                    : "punto kilométrico no identificado"}
+                </p>
+              )}
               {spot && (
                 <p className="mt-1 text-emerald-800/90 dark:text-emerald-200/90">
                   {[
                     routePreview?.territory?.barrio
                       ? `Barrio ${routePreview.territory.barrio}`
                       : "",
-                    routePreview?.territory?.municipio,
+                    routePreview?.road?.ref && routePreview.territory?.municipio
+                      ? `Zona afectada: Ayuntamiento de ${routePreview.territory.municipio}`
+                      : routePreview?.territory?.municipio || "",
                   ]
                     .filter(Boolean)
                     .join(" · ") || "Sin barrio con nombre en este punto."}

@@ -22,8 +22,15 @@ function complaintBlock(complaint: Complaint, index?: number): string {
       : `${index + 1}. ${complaint.tracking_code} — ${complaint.title}`;
   return [
     heading,
+    complaint.via_ref
+      ? `Vía: ${complaint.via_ref}${complaint.via_name ? ` (${complaint.via_name})` : ""}`
+      : "",
+    complaint.via_ref
+      ? `Punto kilométrico: ${complaint.via_pk || "no identificado"}`
+      : "",
     complaint.calle ? `Calle: ${complaint.calle}` : "Calle: no hay una vía con nombre junto al punto.",
     complaint.barrio ? `Barrio: ${complaint.barrio}` : "",
+    complaint.municipio ? `Zona afectada: Ayuntamiento de ${complaint.municipio}` : "",
     place ? `Municipio: ${place}` : "",
     `Coordenadas: ${complaint.lat.toFixed(6)}, ${complaint.lng.toFixed(6)}`,
     `Google Maps: ${maps}`,

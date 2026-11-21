@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { ADMIN_LEVEL_HINTS } from "@/lib/constants";
+import { resolveRoad } from "@/lib/road";
 import { resolveTerritory, routeComplaint } from "@/lib/territory";
 import { COMPLAINT_CATEGORIES, type AdminLevel, type ComplaintCategory } from "@/types";
 
@@ -20,15 +21,36 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Categoría inválida" }, { status: 400 });
   }
 
+  const manual = searchParams.get("manual") === "1";
   const territory = await resolveTerritory(lat, lng);
+  const road = await resolveRoad({
+    lat,
+    lng,
+    comunidad: territory.comunidad,
+    osmType: territory.osmType,
+    osmId: territory.osmId,
+    osmCategory: territory.osmCategory,
+  });
+  const resolvedLevel = !manual && road?.owner ? road.owner : level;
   const office = await routeComplaint({
-    level,
-    category: category as ComplaintCategory,
+    level: resolvedLevel,
+    category:
+      road?.owner === "estado" && resolvedLevel === "estado"
+        ? "carreteras_estatales"
+        : (category as ComplaintCategory),
     territory,
   });
 
   return NextResponse.json({
-    territory,
+    territory: {
+      municipio: territory.municipio,
+      provincia: territory.provincia,
+      comunidad: territory.comunidad,
+      calle: territory.calle,
+      barrio: territory.barrio,
+    },
+    road,
+    suggested_level: road?.owner ?? null,
     recipient: {
       name: office.name,
       email: office.email,
@@ -36,6 +58,6 @@ export async function GET(req: NextRequest) {
       known: Boolean(office.email),
       source: office.source,
     },
-    hint: ADMIN_LEVEL_HINTS[level],
+    hint: ADMIN_LEVEL_HINTS[resolvedLevel],
   });
 }

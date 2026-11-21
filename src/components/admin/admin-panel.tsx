@@ -312,7 +312,16 @@ export function AdminPanel() {
                   {c.anonymous_nickname} · {c.tracking_code} · {c.lat.toFixed(4)}, {c.lng.toFixed(4)}
                 </p>
                 <p className="mt-1 text-xs text-slate-500">
-                  {[c.calle, c.barrio ? `Barrio ${c.barrio}` : "", c.municipio]
+                  {[
+                    c.via_ref ? `Vía ${c.via_ref}${c.via_pk ? ` ${c.via_pk}` : ""}` : "",
+                    c.calle,
+                    c.barrio ? `Barrio ${c.barrio}` : "",
+                    c.municipio
+                      ? c.via_ref
+                        ? `Ayuntamiento de ${c.municipio}`
+                        : c.municipio
+                      : "",
+                  ]
                     .filter(Boolean)
                     .join(" · ") || "Sin calle cercana"}
                   {" · "}
